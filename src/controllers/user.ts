@@ -66,7 +66,7 @@ export const getUserByID = (req: Request, res: Response) => {
 };
 
 //update the user by their ID
-export const updateUser = (req: Request, res: Response) => {
+export const updateUser = (users: User[], req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     const {
