@@ -22,10 +22,10 @@ async function startApolloServer() {
 
 startApolloServer();
 
-const app: Application = express();
+export const app: Application = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Use user routes
 app.use("/api", userRoutes);

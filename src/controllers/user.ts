@@ -6,7 +6,7 @@ import { User } from "../model/userModel";
 const filePath = path.join(__dirname, "../userData.json");
 
 //initailize users array from file
-let users: User[] = [];
+export let users: User[] = [];
 
 if (fs.existsSync(filePath)) {
   const data = fs.readFileSync(filePath, "utf-8");
@@ -25,16 +25,20 @@ export const createUser = (req: Request, res: Response) => {
   try {
     const { fullname, age, phoneNumber, email, password }: User = req.body;
 
+    if (!fullname || !age || !phoneNumber || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const existingUser = users.find((user) => user.email === email);
 
     if (existingUser) {
       return res
         .status(409)
-        .json({ mesaage: "User with same email already exists" });
+        .json({ message: "User with same email already exists" });
     }
-    const id = users.length + 1;
+    const newid = users.length + 1;
     const newUser: User = {
-      id,
+      id: newid,
       fullname,
       age,
       phoneNumber,
@@ -43,7 +47,6 @@ export const createUser = (req: Request, res: Response) => {
     };
 
     users.push(newUser);
-    saveUsers();
 
     return res.status(201).json({ "User created:": newUser });
   } catch (error) {

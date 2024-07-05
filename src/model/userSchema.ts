@@ -1,7 +1,6 @@
 import Joi from "joi";
 
 const userSchema = Joi.object({
-  id: Joi.number().integer().required(),
   fullname: Joi.string().min(3).max(30).required(),
   age: Joi.number().integer().required(),
   phoneNumber: Joi.string()

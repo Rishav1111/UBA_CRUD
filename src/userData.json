@@ -48,115 +48,11 @@
     "password": "12345678"
   },
   {
-    "id": 3,
+    "id": 7,
     "fullname": "Alice",
     "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
-    "password": "password789"
-  },
-  {
-    "id": 3,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "111222333",
-    "email": "alice@example.com",
+    "phoneNumber": "1112223334",
+    "email": "jane@example.com",
     "password": "password789"
   }
 ]
