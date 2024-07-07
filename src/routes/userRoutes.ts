@@ -18,7 +18,7 @@ router.get("/getUsers", getUsers);
 router.get("/getUser/:id", getUserByID);
 
 //create user endpoint
-router.post("/createUser", createUser);
+router.post("/createUser", validateRequest(userSchema), createUser);
 
 //update user by their ID endpoint
 router.put("/udpateUser/:id", validateRequest(userSchema), updateUser);

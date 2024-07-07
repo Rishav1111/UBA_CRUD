@@ -56,7 +56,7 @@ export const createUser = (req: Request, res: Response) => {
 
 //Get all users
 export const getUsers = (req: Request, res: Response) => {
-  return res.status(200).json({ Users: users });
+  return res.status(200).json(users);
 };
 
 //Get user by ID
@@ -72,44 +72,42 @@ export const getUserByID = (req: Request, res: Response) => {
 };
 
 //update the user by their ID
-export const updateUser = (users: User[], req: Request, res: Response) => {
+// Update the user by their ID
+export const updateUser = (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const {
-      id: userid,
-      fullname,
-      age,
-      phoneNumber,
-      email,
-      password,
-    }: User = req.body;
+    const { fullname, age, phoneNumber, email, password }: Partial<User> =
+      req.body;
 
     const index = users.findIndex((user) => user.id === id);
+
     if (index !== -1) {
-      const existingUser = users.find((user) => user.email === email);
-      if (existingUser && existingUser.id !== id) {
+      // Check if the new email belongs to another user
+      if (
+        email &&
+        users.some((user) => user.email === email && user.id !== id)
+      ) {
         return res
           .status(409)
-          .json({ mesaage: "User with same email already exists" });
+          .json({ message: "User with same email already exists" });
       }
 
-      const updateUser: User = {
-        id,
-        fullname,
-        age,
-        phoneNumber,
-        email,
-        password,
-      };
+      // Update only the provided fields
+      if (fullname) users[index].fullname = fullname;
+      if (age) users[index].age = age;
+      if (phoneNumber) users[index].phoneNumber = phoneNumber;
+      if (email) users[index].email = email;
+      if (password) users[index].password = password;
 
-      users[index] = updateUser;
       saveUsers();
-      return res.status(200).json({ "User updated": updateUser });
+
+      return res.status(200).json({ "User updated": users[index] });
     } else {
-      return res.status(404).send("User not found");
+      return res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    res.status(500).json({ status: "Failed to update user." });
+    console.error("Update user error:", error);
+    return res.status(500).json({ status: "Failed to update user." });
   }
 };
 

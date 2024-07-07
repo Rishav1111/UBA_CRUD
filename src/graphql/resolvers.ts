@@ -7,8 +7,11 @@ let users: User[] = userData as User[];
 export const resolvers = {
   Query: {
     users: () => users,
-    user: (_: any, args: { id: any }) => {
+    user: (_: Number, args: { id: Number }) => {
       const user = users.find((user) => user.id === Number(args.id));
+      if (!user) {
+        throw new Error("User not found");
+      }
       return user;
     },
     userSort: (
