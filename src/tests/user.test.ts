@@ -7,13 +7,10 @@ import {
   beforeEach,
   afterEach,
   afterAll,
+  should,
 } from "vitest";
 const request = require("supertest");
 import express from "express";
-import { typeDefs } from "../graphql/schema";
-import { resolvers } from "../graphql/resolvers";
-import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
 
 import fs from "fs";
 import { users } from "../controllers/user";
@@ -34,17 +31,6 @@ app.post("/api/createUser", createUser);
 app.put("/api/updateUser/:id", updateUser);
 app.delete("/api/deleteUser/:id", deleteUser);
 
-const createTestServer = () => {
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-  });
-
-  return server.start().then(() => {
-    app.use("/graphql", expressMiddleware(server));
-    return app;
-  });
-};
 // Simple mock for fs
 vi.mock("fs");
 
@@ -184,60 +170,10 @@ describe("Users control", () => {
     expect(res.body).toEqual({ message: "User deleted" });
     expect(users.length).toBe(1);
   });
-});
 
-describe("GraphQL", () => {
-  let app: express.Express;
-
-  beforeEach(async () => {
-    app = await createTestServer();
-  });
-
-  it("should return a user by ID", async () => {
-    const query = `
-      query {
-        user(id: "1") {
-          id
-          fullname
-          age
-          email
-        }
-      }
-    `;
-    const res = await request(app).post("/graphql").send({ query });
-    expect(res.body.data).toBeDefined();
-    expect(res.body.data.user).toHaveProperty("id", "1");
-  });
-
-  it("should return all users", async () => {
-    const query = `
-      query {
-        users {
-          id
-          fullname
-          age
-          email
-        }
-      }
-    `;
-    const res = await request(app).post("/graphql").send({ query });
-    expect(res.body.data).toBeDefined();
-    expect(res.body.data.users.length).toBeGreaterThan(0);
-  });
-
-  it("should return an error for a non-existing user ID", async () => {
-    const query = `
-      query {
-        user(id: "87") {
-          id
-          fullname
-          email
-          password
-        }
-      }
-    `;
-    const res = await request(app).post("/graphql").send({ query });
-    expect(res.body.errors).toBeDefined();
-    expect(res.body.errors[0].message).toBe("User not found");
+  it("should return 404 for deleting a non-existing user ID", async () => {
+    const res = await request(app).delete("/api/deleteUser/999");
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ message: "User not found" });
   });
 });

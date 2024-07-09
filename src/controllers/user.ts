@@ -106,7 +106,6 @@ export const updateUser = (req: Request, res: Response) => {
       return res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
-    console.error("Update user error:", error);
     return res.status(500).json({ status: "Failed to update user." });
   }
 };
@@ -121,7 +120,7 @@ export const deleteUser = (req: Request, res: Response) => {
       saveUsers();
       return res.status(200).json({ message: "User deleted" });
     } else {
-      return res.status(404).send("User not found");
+      return res.status(404).json({ message: "User not found" });
     }
   } catch (error) {
     res.status(500).json({ status: "Failed to delete user." });
