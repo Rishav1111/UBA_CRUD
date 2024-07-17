@@ -1,5 +1,5 @@
 import { Router } from "express";
-import validateRequest from "../middleware/validatereq";
+
 import {
   createUser,
   deleteUser,
@@ -7,7 +7,6 @@ import {
   getUsers,
   updateUser,
 } from "../controllers/user";
-import userSchema from "../model/userSchema";
 
 const router: Router = Router();
 
@@ -18,10 +17,10 @@ router.get("/getUsers", getUsers);
 router.get("/getUser/:id", getUserByID);
 
 //create user endpoint
-router.post("/createUser", validateRequest(userSchema), createUser);
+router.post("/createUser", createUser);
 
 //update user by their ID endpoint
-router.put("/udpateUser/:id", validateRequest(userSchema), updateUser);
+router.put("/updateUser/:id", updateUser);
 
 //delete user by their ID endpoint
 router.delete("/deleteUser/:id", deleteUser);

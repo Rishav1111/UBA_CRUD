@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
 import { User } from "../model/userModel";
+import Joi from "joi";
 
 const filePath = path.join(__dirname, "../userData.json");
 
@@ -20,38 +21,49 @@ const saveUsers = () => {
   fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
 };
 
+const userSchema = Joi.object({
+  fullname: Joi.string().min(3).max(30).required(),
+  age: Joi.number().integer().required(),
+  phoneNumber: Joi.string()
+    .pattern(/^[0-9]+$/)
+    .min(10)
+    .required(),
+  email: Joi.string()
+    .email()
+    .pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)
+    .required(),
+  password: Joi.string().min(8).required(),
+});
+
 //Create new user
 export const createUser = (req: Request, res: Response) => {
-  try {
-    const { fullname, age, phoneNumber, email, password }: User = req.body;
-
-    if (!fullname || !age || !phoneNumber || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const existingUser = users.find((user) => user.email === email);
-
-    if (existingUser) {
-      return res
-        .status(409)
-        .json({ message: "User with same email already exists" });
-    }
-    const newid = users.length + 1;
-    const newUser: User = {
-      id: newid,
-      fullname,
-      age,
-      phoneNumber,
-      email,
-      password,
-    };
-
-    users.push(newUser);
-
-    return res.status(201).json({ "User created:": newUser });
-  } catch (error) {
-    return res.status(500).json({ status: "Failed to create user." });
+  const { error } = userSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.message });
   }
+
+  const { fullname, age, phoneNumber, email, password }: User = req.body;
+
+  const existingUser = users.find((user) => user.email === email);
+
+  if (existingUser) {
+    return res
+      .status(409)
+      .json({ message: "User with same email already exists" });
+  }
+  const newid = users.length + 1;
+  const newUser: User = {
+    id: newid,
+    fullname,
+    age,
+    phoneNumber,
+    email,
+    password,
+  };
+
+  users.push(newUser);
+
+  return res.status(201).json({ "User created:": newUser });
 };
 
 //Get all users
@@ -71,58 +83,32 @@ export const getUserByID = (req: Request, res: Response) => {
   }
 };
 
-//update the user by their ID
 // Update the user by their ID
 export const updateUser = (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    const { fullname, age, phoneNumber, email, password }: Partial<User> =
-      req.body;
-
-    const index = users.findIndex((user) => user.id === id);
-
-    if (index !== -1) {
-      // Check if the new email belongs to another user
-      if (
-        email &&
-        users.some((user) => user.email === email && user.id !== id)
-      ) {
-        return res
-          .status(409)
-          .json({ message: "User with same email already exists" });
-      }
-
-      // Update only the provided fields
-      if (fullname) users[index].fullname = fullname;
-      if (age) users[index].age = age;
-      if (phoneNumber) users[index].phoneNumber = phoneNumber;
-      if (email) users[index].email = email;
-      if (password) users[index].password = password;
-
-      saveUsers();
-
-      return res.status(200).json({ "User updated": users[index] });
-    } else {
-      return res.status(404).json({ message: "User not found" });
-    }
-  } catch (error) {
-    return res.status(500).json({ status: "Failed to update user." });
+  const { error } = userSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.message });
+  }
+  const userIndex = users.findIndex(
+    (user) => user.id === Number(req.params.id)
+  );
+  if (userIndex !== -1) {
+    users[userIndex] = { ...users[userIndex], ...req.body };
+    res.status(200).json(users[userIndex]);
+  } else {
+    res.status(404).json({ message: "User not found" });
   }
 };
 
 //delete user by their ID
 export const deleteUser = (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    const index = users.findIndex((user) => user.id === id);
-    if (index !== -1) {
-      users.splice(index, 1);
-      saveUsers();
-      return res.status(200).json({ message: "User deleted" });
-    } else {
-      return res.status(404).json({ message: "User not found" });
-    }
-  } catch (error) {
-    res.status(500).json({ status: "Failed to delete user." });
+  const id = Number(req.params.id);
+  const index = users.findIndex((user) => user.id === id);
+  if (index !== -1) {
+    users.splice(index, 1);
+    saveUsers();
+    return res.status(200).json({ message: "User deleted" });
+  } else {
+    return res.status(404).json({ message: "User not found" });
   }
 };

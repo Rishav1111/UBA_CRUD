@@ -48,11 +48,6 @@ export const resolvers = {
     },
   },
   Mutation: {
-    deleteUser(_: any, args: { id: any }) {
-      const user = users.filter((user) => user.id !== Number(args.id));
-      return user;
-    },
-
     addUser(_: any, args: { user: User }) {
       let newUser = {
         ...args.user,
@@ -61,6 +56,7 @@ export const resolvers = {
       users.push(newUser);
       return users;
     },
+
     updateUser(_: any, args: { id: any; edits: User }) {
       const user = users.find((user) => user.id === Number(args.id));
       if (!user) {
@@ -69,6 +65,11 @@ export const resolvers = {
       const index = users.indexOf(user);
       users[index] = { ...user, ...args.edits };
       return users[index];
+    },
+    deleteUser(_: any, args: { id: any }) {
+      const user = users.filter((user) => user.id !== Number(args.id));
+
+      return user;
     },
   },
 };

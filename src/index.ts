@@ -6,6 +6,7 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./graphql/schema";
 import { resolvers } from "./graphql/resolvers";
+import { createConnection } from "typeorm";
 
 //Graphql server
 const server = new ApolloServer({
@@ -29,6 +30,14 @@ app.use(express.json());
 
 // Use user routes
 app.use("/api", userRoutes);
+
+createConnection()
+  .then(() => {
+    console.log("Connected to database");
+  })
+  .catch((error) => {
+    console.log(error);
+  });
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
