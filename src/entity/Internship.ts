@@ -1,6 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
+const {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+} = require("typeorm");
 
-import { User } from "./User";
+const { User } = require("./User");
 
 @Entity()
 export class Internship {
@@ -19,6 +24,6 @@ export class Internship {
   @Column()
   mentorName!: string;
 
-  @ManyToOne(() => User, (user) => user.id)
-  user!: User;
+  @ManyToOne(() => User, (user: { id: any }) => user.id)
+  user!: typeof User;
 }

@@ -1,25 +1,7 @@
 import { Request, Response } from "express";
-import fs from "fs";
-import path from "path";
-import { User } from "../model/userModel";
+import { User } from "../entity/User";
 import Joi from "joi";
-
-const filePath = path.join(__dirname, "../userData.json");
-
-//initailize users array from file
-export let users: User[] = [];
-
-if (fs.existsSync(filePath)) {
-  const data = fs.readFileSync(filePath, "utf-8");
-  users = JSON.parse(data);
-} else {
-  fs.writeFileSync(filePath, JSON.stringify(users));
-}
-
-//Save users to file
-const saveUsers = () => {
-  fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
-};
+import { getRepository } from "typeorm";
 
 const userSchema = Joi.object({
   fullname: Joi.string().min(3).max(30).required(),
@@ -36,79 +18,81 @@ const userSchema = Joi.object({
 });
 
 //Create new user
-export const createUser = (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.message });
   }
 
+  const userRepo = getRepository(User);
   const { fullname, age, phoneNumber, email, password }: User = req.body;
 
-  const existingUser = users.find((user) => user.email === email);
+  const existingUser = await userRepo.findOne({ where: { email } });
+  console.log(existingUser);
 
-  if (existingUser) {
+  if (existingUser !== null) {
     return res
       .status(409)
-      .json({ message: "User with same email already exists" });
+      .json({ message: "User with the same email already exists" });
   }
-  const newid = users.length + 1;
-  const newUser: User = {
-    id: newid,
+
+  const newUser = userRepo.create({
     fullname,
     age,
     phoneNumber,
     email,
     password,
-  };
+  });
 
-  users.push(newUser);
+  await userRepo.save(newUser);
 
   return res.status(201).json({ "User created:": newUser });
 };
 
 //Get all users
 export const getUsers = (req: Request, res: Response) => {
+  const userRepo = getRepository(User);
+  const users = userRepo.find();
   return res.status(200).json(users);
 };
 
 //Get user by ID
 
-export const getUserByID = (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const user = users.find((user) => user.id === id);
+export const getUserByID = async (req: Request, res: Response) => {
+  const userRepository = getRepository(User);
+  const user = await userRepository.findOneById(req.params.id);
   if (!user) {
-    res.status(404).json({ message: "User not found" });
-  } else {
-    res.status(200).json(user);
+    return res.status(404).json({ message: "User not found" });
   }
+  return res.status(200).json(user);
 };
 
 // Update the user by their ID
-export const updateUser = (req: Request, res: Response) => {
+export const updateUser = async (req: Request, res: Response) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.message });
   }
-  const userIndex = users.findIndex(
-    (user) => user.id === Number(req.params.id)
-  );
-  if (userIndex !== -1) {
-    users[userIndex] = { ...users[userIndex], ...req.body };
-    res.status(200).json(users[userIndex]);
+  const userRepository = getRepository(User);
+  const user = await userRepository.findOneById(req.params.id);
+  if (user) {
+    userRepository.merge(user, req.body);
+    const result = await userRepository.save(user);
+    return res.status(200).json(result);
   } else {
-    res.status(404).json({ message: "User not found" });
+    return res.status(404).json({ message: "User not found" });
   }
 };
 
 //delete user by their ID
-export const deleteUser = (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const index = users.findIndex((user) => user.id === id);
-  if (index !== -1) {
-    users.splice(index, 1);
-    saveUsers();
-    return res.status(200).json({ message: "User deleted" });
-  } else {
+export const deleteUser = async (req: Request, res: Response) => {
+  const userRepository = getRepository(User);
+  const user = await userRepository.findOneById(req.params.id);
+
+  if (!user) {
     return res.status(404).json({ message: "User not found" });
+  } else {
+    await userRepository.remove(user);
+    return res.status(200).json({ message: "User deleted" });
   }
 };
