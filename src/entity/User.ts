@@ -1,22 +1,22 @@
-const { Entity, PrimaryGeneratedColumn, Column } = require("typeorm");
+import { Entity, PrimaryGeneratedColumn, Column } from "typeorm";
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column("varchar")
+  @Column()
   fullname!: string;
 
-  @Column("int")
+  @Column()
   age!: number;
 
-  @Column("varchar")
+  @Column()
   phoneNumber!: string;
 
-  @Column("varchar")
+  @Column()
   email!: string;
 
-  @Column("varchar")
+  @Column()
   password!: string;
 }

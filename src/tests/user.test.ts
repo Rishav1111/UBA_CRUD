@@ -1,31 +1,58 @@
 // userController.test.ts
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { createConnection, getConnection } from "typeorm";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 const request = require("supertest");
+import express from "express";
+
+import fs from "fs";
+import { users } from "../controllers/user";
+
 import { app } from "../../src/index";
-
-// import fs from "fs";
-// import { User } from "../model/userModel";
-
-// let users: User[] = [];
 
 // Simple mock for fs
 vi.mock("fs");
 
 describe("Users control", () => {
-  // Test getUsers
-  it("should get all users", async () => {
-    const response = await request(app).get("/api/getUsers");
+  beforeEach(() => {
+    // Reset users array and mock fs
+    users.length = 0;
+    users.push(
+      {
+        id: 1,
+        fullname: "Alice",
+        age: 22,
+        phoneNumber: "1112223334",
+        email: "alice@gmail.com",
+        password: "password789",
+      },
+      {
+        id: 2,
+        fullname: "Bob",
+        age: 30,
+        phoneNumber: "5556667778",
+        email: "bob@gmail.com",
+        password: "password123",
+      }
+    );
+    vi.clearAllMocks();
+    vi.spyOn(fs, "writeFileSync").mockImplementation(() => {});
+  });
 
-    expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // Test getUsers
+  it("should return all users", async () => {
+    const res = await request(app).get("/api/getUsers");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(users);
   });
 
   // Test getUserByID
   it("should return user by ID", async () => {
     const res = await request(app).get("/api/getUser/1");
-    expect(res.body["uid"]).toBe(1);
     expect(res.status).toBe(200);
+    expect(res.body).toEqual(users[0]);
   });
 
   it("should return 404 for a non-existing user ID", async () => {
@@ -45,7 +72,7 @@ describe("Users control", () => {
     });
 
     expect(response.status).toBe(201);
-    expect(response.body.fullname).toBe("Rishav Shrestha");
+    expect(response.body).toHaveProperty("User created:");
   });
 
   it("should fail to create a user with invalid data", async () => {
@@ -139,12 +166,12 @@ describe("Users control", () => {
   });
 
   //Test case for deleting users
-  // it("should delete user by ID", async () => {
-  //   const res = await request(app).delete("/api/deleteUser/1");
-  //   expect(res.status).toBe(200);
-  //   expect(res.body).toEqual({ message: "User deleted" });
-  //   expect(users.length).toBe(1);
-  // });
+  it("should delete user by ID", async () => {
+    const res = await request(app).delete("/api/deleteUser/1");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: "User deleted" });
+    expect(users.length).toBe(1);
+  });
 
   it("should return 404 for deleting a non-existing user ID", async () => {
     const res = await request(app).delete("/api/deleteUser/999");

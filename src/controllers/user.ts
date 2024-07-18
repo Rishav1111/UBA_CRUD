@@ -1,7 +1,25 @@
 import { Request, Response } from "express";
-import { User } from "../entity/User";
+import fs from "fs";
+import path from "path";
+import { User } from "../model/userModel";
 import Joi from "joi";
-import { getRepository } from "typeorm";
+
+const filePath = path.join(__dirname, "../userData.json");
+
+//initailize users array from file
+export let users: User[] = [];
+
+if (fs.existsSync(filePath)) {
+  const data = fs.readFileSync(filePath, "utf-8");
+  users = JSON.parse(data);
+} else {
+  fs.writeFileSync(filePath, JSON.stringify(users));
+}
+
+//Save users to file
+const saveUsers = () => {
+  fs.writeFileSync(filePath, JSON.stringify(users, null, 2));
+};
 
 const userSchema = Joi.object({
   fullname: Joi.string().min(3).max(30).required(),
@@ -18,81 +36,79 @@ const userSchema = Joi.object({
 });
 
 //Create new user
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = (req: Request, res: Response) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.message });
   }
 
-  const userRepo = getRepository(User);
   const { fullname, age, phoneNumber, email, password }: User = req.body;
 
-  const existingUser = await userRepo.findOne({ where: { email } });
-  console.log(existingUser);
+  const existingUser = users.find((user) => user.email === email);
 
-  if (existingUser !== null) {
+  if (existingUser) {
     return res
       .status(409)
-      .json({ message: "User with the same email already exists" });
+      .json({ message: "User with same email already exists" });
   }
-
-  const newUser = userRepo.create({
+  const newid = users.length + 1;
+  const newUser: User = {
+    id: newid,
     fullname,
     age,
     phoneNumber,
     email,
     password,
-  });
+  };
 
-  await userRepo.save(newUser);
+  users.push(newUser);
 
   return res.status(201).json({ "User created:": newUser });
 };
 
 //Get all users
 export const getUsers = (req: Request, res: Response) => {
-  const userRepo = getRepository(User);
-  const users = userRepo.find();
   return res.status(200).json(users);
 };
 
 //Get user by ID
 
-export const getUserByID = async (req: Request, res: Response) => {
-  const userRepository = getRepository(User);
-  const user = await userRepository.findOneById(req.params.id);
+export const getUserByID = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const user = users.find((user) => user.id === id);
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    res.status(404).json({ message: "User not found" });
+  } else {
+    res.status(200).json(user);
   }
-  return res.status(200).json(user);
 };
 
 // Update the user by their ID
-export const updateUser = async (req: Request, res: Response) => {
+export const updateUser = (req: Request, res: Response) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
     return res.status(400).json({ message: error.message });
   }
-  const userRepository = getRepository(User);
-  const user = await userRepository.findOneById(req.params.id);
-  if (user) {
-    userRepository.merge(user, req.body);
-    const result = await userRepository.save(user);
-    return res.status(200).json(result);
+  const userIndex = users.findIndex(
+    (user) => user.id === Number(req.params.id)
+  );
+  if (userIndex !== -1) {
+    users[userIndex] = { ...users[userIndex], ...req.body };
+    res.status(200).json(users[userIndex]);
   } else {
-    return res.status(404).json({ message: "User not found" });
+    res.status(404).json({ message: "User not found" });
   }
 };
 
 //delete user by their ID
-export const deleteUser = async (req: Request, res: Response) => {
-  const userRepository = getRepository(User);
-  const user = await userRepository.findOneById(req.params.id);
-
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  } else {
-    await userRepository.remove(user);
+export const deleteUser = (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const index = users.findIndex((user) => user.id === id);
+  if (index !== -1) {
+    users.splice(index, 1);
+    saveUsers();
     return res.status(200).json({ message: "User deleted" });
+  } else {
+    return res.status(404).json({ message: "User not found" });
   }
 };
