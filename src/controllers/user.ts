@@ -3,6 +3,7 @@ import { User } from "../entity/User";
 import Joi from "joi";
 import { getRepository } from "typeorm";
 import { AppDataSource } from "../db/data_source";
+import bcrypt from "bcrypt";
 
 const userSchema = Joi.object({
   fullname: Joi.string().min(3).max(30).required(),
@@ -37,12 +38,14 @@ export const createUser = async (req: Request, res: Response) => {
       .json({ message: "User with the same email already exists" });
   }
 
+  const hashedPassword = await bcrypt.hash(password, 10);
+
   const newUser = userRepo.create({
     fullname,
     age,
     phoneNumber,
     email,
-    password,
+    password: hashedPassword,
   });
 
   await userRepo.save(newUser);

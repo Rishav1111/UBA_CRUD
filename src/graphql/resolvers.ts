@@ -1,26 +1,28 @@
-import { updateUser } from "../controllers/user";
-import { User } from "../model/userModel";
-import userData from "../userData.json";
+import { AppDataSource } from "../db/data_source";
+import { User } from "../entity/User";
 
-let users: User[] = userData as User[];
+// Initialize the User repository
+const userRepository = AppDataSource.getRepository(User);
 
 export const resolvers = {
   Query: {
-    users: () => users,
-    user: (_: Number, args: { id: Number }) => {
-      const user = users.find((user) => user.id === Number(args.id));
+    users: async () => {
+      return await userRepository.find();
+    },
+    user: async (_: any, args: { id: number }) => {
+      const user = await userRepository.findOneBy({ id: args.id });
       if (!user) {
         throw new Error("User not found");
       }
       return user;
     },
-    userSort: (
+    userSort: async (
       _: any,
       {
         sortField = "fullname",
         sortOrder = "asc",
         offset = 0,
-        limit = users.length,
+        limit = 10,
       }: {
         sortField?: keyof User;
         sortOrder?: "asc" | "desc";
@@ -28,47 +30,38 @@ export const resolvers = {
         limit?: number;
       }
     ) => {
-      // Sort the users
-      const sortedUsers = users.slice().sort((a, b) => {
-        let fieldA = a[sortField];
-        let fieldB = b[sortField];
-        if (typeof fieldA === "string" && typeof fieldB === "string") {
-          fieldA = fieldA.toLowerCase();
-          fieldB = fieldB.toLowerCase();
-        }
-        if (sortOrder === "asc") {
-          return fieldA > fieldB ? 1 : -1;
-        } else {
-          return fieldA < fieldB ? 1 : -1;
-        }
+      const order = sortOrder.toUpperCase() as "ASC" | "DESC";
+      const users = await userRepository.find({
+        order: {
+          [sortField]: order,
+        },
+        skip: offset,
+        take: limit,
       });
-
-      // Apply pagination using offset and limit
-      return sortedUsers.slice(offset, offset + limit);
+      return users;
     },
   },
   Mutation: {
-    addUser(_: any, args: { user: User }) {
-      let newUser = {
-        ...args.user,
-        id: users.length + 1,
-      };
-      users.push(newUser);
-      return users;
+    addUser: async (_: any, args: { user: Partial<User> }) => {
+      const newUser = userRepository.create(args.user);
+      await userRepository.save(newUser);
+      return newUser;
     },
-
-    updateUser(_: any, args: { id: any; edits: User }) {
-      const user = users.find((user) => user.id === Number(args.id));
+    updateUser: async (_: any, args: { id: number; edits: Partial<User> }) => {
+      const user = await userRepository.findOneBy({ id: args.id });
       if (!user) {
         throw new Error("User not found");
       }
-      const index = users.indexOf(user);
-      users[index] = { ...user, ...args.edits };
-      return users[index];
+      Object.assign(user, args.edits);
+      await userRepository.save(user);
+      return user;
     },
-    deleteUser(_: any, args: { id: any }) {
-      const user = users.filter((user) => user.id !== Number(args.id));
-
+    deleteUser: async (_: any, args: { id: number }) => {
+      const user = await userRepository.findOneBy({ id: args.id });
+      if (!user) {
+        throw new Error("User not found");
+      }
+      await userRepository.delete({ id: args.id });
       return user;
     },
   },

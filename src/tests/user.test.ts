@@ -1,151 +1,49 @@
-// // userController.test.ts
-// import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-// const request = require("supertest");
-// import express from "express";
+import "reflect-metadata";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+const request = require("supertest");
+import { app } from "../index"; // Import the app from your index file
+import { TestDataSource } from "../db/data_soruce_test"; // Corrected to data_source_test
+import { User } from "../entity/User";
 
-// import fs from "fs";
-// import { app } from "../../src/index";
+describe("User API", () => {
+  beforeAll(async () => {
+    // Initialize database
+    await TestDataSource.initialize();
+  });
 
-// // Simple mock for fs
-// vi.mock("fs");
+  afterAll(async () => {
+    await TestDataSource.getRepository(User).clear();
+    await TestDataSource.destroy();
+  });
 
-// describe("Users control", () => {
+  it("should create a new user", async () => {
+    const newUser = {
+      fullname: "John Doe",
+      age: 25,
+      phoneNumber: "1234567890",
+      email: `john.doe.${Date.now()}@example.com`, // Ensure unique email
+      password: "password123",
+    };
 
-//   // Test getUsers
-//   it("should return all users", async () => {
-//     const res = await request(app).get("/api/getUsers");
-//     expect(res.status).toBe(200);
-//     expect(res.body).toEqual(users);
-//   });
+    const response = await request(app)
+      .post("/api/createUser") // Adjust the route as per your API
+      .send(newUser);
 
-//   // Test getUserByID
-//   it("should return user by ID", async () => {
-//     const res = await request(app).get("/api/getUser/1");
-//     expect(res.status).toBe(200);
-//     expect(res.body).toEqual(users[0]);
-//   });
+    console.log("Create User Response:", response.body);
 
-//   it("should return 404 for a non-existing user ID", async () => {
-//     const res = await request(app).get("/api/getUser/999");
-//     expect(res.status).toBe(404);
-//     expect(res.body).toEqual({ message: "User not found" });
-//   });
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty("User created:");
+  });
 
-//   // Test createUser
-//   it("should create a new user successfully", async () => {
-//     const response = await request(app).post("/api/createUser").send({
-//       fullname: "Rishav Shrestha",
-//       age: 21,
-//       phoneNumber: "1234567890",
-//       email: "rishav@example.com",
-//       password: "password123",
-//     });
+  it("should return all users", async () => {
+    const response = await request(app).get("/api/getUsers");
 
-//     expect(response.status).toBe(201);
-//     expect(response.body).toHaveProperty("User created:");
-//   });
+    console.log("Get Users Response:", response.body);
 
-//   it("should fail to create a user with invalid data", async () => {
-//     const response = await request(app).post("/api/createUser").send({
-//       fullname: "Jo",
-//       age: 30,
-//       phoneNumber: "1234567890",
-//       email: "invalid-email",
-//       password: "pass",
-//     });
+    expect(response.status).toBe(200);
+    expect(response.body).toBeInstanceOf(Array);
+  });
 
-//     expect(response.status).toBe(400);
-//     expect(response.body).toHaveProperty("message");
-//   });
-
-//   it("should fail to update a user with invalid data", async () => {
-//     const response = await request(app).put("/api/updateUser/1").send({
-//       fullname: "Jo",
-//       age: 30,
-//       phoneNumber: "1234567890",
-//       email: "invalid-email",
-//       password: "pass",
-//     });
-
-//     expect(response.status).toBe(400);
-//     expect(response.body).toHaveProperty("message");
-//   });
-//   // it("should return 409 if email already exists", async () => {
-//   //   const existingUser = {
-//   //     id: 2,
-//   //     fullname: "Alice",
-//   //     age: 22,
-//   //     phoneNumber: "1112223334",
-//   //     email: "alice@gmail.com",
-//   //     password: "password789",
-//   //   };
-
-//   //   const res = await request(app).post("/api/createUser").send(existingUser);
-
-//   //   expect(res.status).toBe(409);
-//   //   expect(res.body).toEqual({
-//   //     message: "User with same email already exists",
-//   //   });
-//   // });
-
-//   // Test createUser with missing required fields
-//   it("should return 400 if required fields are missing", async () => {
-//     const incompleteUser = {
-//       fullname: "Bob",
-//       age: 30,
-//       phoneNumber: "1234567890",
-//       email: "bob@example.com",
-//     };
-
-//     const res = await request(app).post("/api/createUser").send(incompleteUser);
-
-//     expect(res.status).toBe(400);
-//     expect(res.body).toEqual({ message: '"password" is required' });
-//   });
-
-//   it("should update user by their ID", async () => {
-//     const res = await request(app).put("/api/updateUser/1").send({
-//       fullname: "Alice",
-//       age: 25,
-//       email: "alice@gmail.com",
-//       phoneNumber: "1112223334",
-//       password: "password789",
-//     });
-//     expect(res.status).toBe(200);
-//     expect(res.body).toEqual(
-//       expect.objectContaining({
-//         fullname: "Alice",
-//         age: 25,
-//         email: "alice@gmail.com",
-//         phoneNumber: "1112223334",
-//         password: "password789",
-//       })
-//     );
-//   });
-
-//   it("should return 404 for updating a non-existing user ID", async () => {
-//     const res = await request(app).put("/api/updateUser/999").send({
-//       fullname: "Alice",
-//       age: 25,
-//       email: "alice@gmail.com",
-//       phoneNumber: "1112223334",
-//       password: "password789",
-//     });
-//     expect(res.status).toBe(404);
-//     expect(res.body).toEqual({ message: "User not found" });
-//   });
-
-//   //Test case for deleting users
-//   it("should delete user by ID", async () => {
-//     const res = await request(app).delete("/api/deleteUser/1");
-//     expect(res.status).toBe(200);
-//     expect(res.body).toEqual({ message: "User deleted" });
-//     expect(users.length).toBe(1);
-//   });
-
-//   it("should return 404 for deleting a non-existing user ID", async () => {
-//     const res = await request(app).delete("/api/deleteUser/999");
-//     expect(res.status).toBe(404);
-//     expect(res.body).toEqual({ message: "User not found" });
-//   });
-// });
+  //get users by id
+  it("should return a user by id", async () => {});
+});
