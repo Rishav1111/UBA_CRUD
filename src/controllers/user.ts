@@ -4,6 +4,7 @@ import Joi from "joi";
 import { getRepository } from "typeorm";
 import { AppDataSource } from "../db/data_source";
 import bcrypt from "bcrypt";
+import { jwtauth, generateToken } from "../middleware/auth_user";
 
 const userSchema = Joi.object({
   fullname: Joi.string().min(3).max(30).required(),
@@ -50,7 +51,42 @@ export const createUser = async (req: Request, res: Response) => {
 
   await userRepo.save(newUser);
 
-  return res.status(201).json({ "User created:": newUser });
+  const payload = {
+    id: newUser.id,
+    fullname: newUser.fullname,
+  };
+
+  const token = generateToken(payload);
+  console.log(token);
+
+  return res.status(201).json({ "User created:": newUser, token: token });
+};
+
+//Login user
+export const loginUser = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  const userRepo = AppDataSource.getRepository(User);
+
+  const user = await userRepo.findOne({ where: { email } });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isMatch = await bcrypt.compare(password, user.password);
+
+  if (!isMatch) {
+    return res.status(401).json({ message: "Invalid Password" });
+  }
+
+  const payload = {
+    id: user.id,
+    fullname: user.fullname,
+  };
+
+  const token = generateToken(payload);
+
+  return res.status(200).json({ message: "Login Successfully", token: token });
 };
 
 //Get all users

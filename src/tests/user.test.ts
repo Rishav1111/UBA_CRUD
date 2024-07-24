@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-const request = require("supertest");
+import request from "supertest";
 import { app } from "../index"; // Import the app from your index file
 import { TestDataSource } from "../db/data_soruce_test"; // Corrected to data_source_test
 import { User } from "../entity/User";
@@ -11,10 +11,7 @@ describe("User API", () => {
     await TestDataSource.initialize();
   });
 
-  afterAll(async () => {
-    await TestDataSource.getRepository(User).clear();
-    await TestDataSource.destroy();
-  });
+  afterAll(async () => {});
 
   it("should create a new user", async () => {
     const newUser = {
@@ -45,5 +42,15 @@ describe("User API", () => {
   });
 
   //get users by id
-  it("should return a user by id", async () => {});
+  // it("should return a user by id", async () => {
+  //   const userRepo = TestDataSource.getRepository(User);
+  //   const user = await userRepo.findOne({ where: { id: 1 } });
+
+  //   const response = await request(app).get(`/api/getUser/1`);
+
+  //   console.log("Get User By ID Response:", response.body);
+
+  //   expect(response.status).toBe(200);
+  //   expect(response.body).toHaveProperty("id", 1);
+  // });
 });

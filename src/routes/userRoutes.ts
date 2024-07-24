@@ -5,8 +5,10 @@ import {
   deleteUser,
   getUserByID,
   getUsers,
+  loginUser,
   updateUser,
 } from "../controllers/user";
+import { jwtauth } from "../middleware/auth_user";
 
 const router: Router = Router();
 
@@ -18,6 +20,9 @@ router.get("/getUser/:id", getUserByID);
 
 //create user endpoint
 router.post("/createUser", createUser);
+
+//login user
+router.post("/login", loginUser);
 
 //update user by their ID endpoint
 router.put("/updateUser/:id", updateUser);

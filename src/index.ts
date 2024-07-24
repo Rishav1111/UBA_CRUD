@@ -8,6 +8,9 @@ import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./graphql/schema";
 import { resolvers } from "./graphql/resolvers";
 import { createConnection } from "typeorm";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 //Graphql server
 const server = new ApolloServer({
