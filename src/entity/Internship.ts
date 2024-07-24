@@ -1,5 +1,4 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
-
 import { User } from "./User";
 
 @Entity()
@@ -7,16 +6,16 @@ export class Internship {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @Column()
+  @Column("date")
   joinedDate!: Date;
 
-  @Column()
+  @Column("date")
   completionDate!: Date;
 
-  @Column()
+  @Column("boolean")
   isCertified!: boolean;
 
-  @Column()
+  @Column("varchar")
   mentorName!: string;
 
   @ManyToOne(() => User, (user) => user.id)

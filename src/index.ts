@@ -3,11 +3,11 @@ import "reflect-metadata";
 import express, { Application } from "express";
 import { AppDataSource } from "./db/data_source";
 import Routes from "./routes/index_Routes";
-const { ApolloServer } = require("@apollo/server");
-const { startStandaloneServer } = require("@apollo/server/standalone");
-const { typeDefs } = require("./graphql/schema");
-const { resolvers } = require("./graphql/resolvers");
-const { createConnection } = require("typeorm");
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
+import { typeDefs } from "./graphql/schema";
+import { resolvers } from "./graphql/resolvers";
+import { createConnection } from "typeorm";
 
 //Graphql server
 const server = new ApolloServer({
@@ -24,7 +24,7 @@ async function startApolloServer() {
 
 startApolloServer();
 
-const app: Application = express();
+export const app: Application = express();
 app.use(express.json());
 
 // Use user routes

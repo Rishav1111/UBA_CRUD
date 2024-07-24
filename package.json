@@ -11,7 +11,9 @@
     "test:coverage": "vitest run --coverage",
     "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
     "ts-node": "ts-node src/index.ts",
-    "migration:run": "npm run typeorm migration:run"
+    "migration:generate": "npm run typeorm -- migration:generate -d ./src/db/data_source.ts ./src/db/migration/usermig",
+    "migration:run": "npm run typeorm -- migration:run -d ./src/db/data_source.ts",
+    "migration_test:run": "npm run typeorm -- migration_test:run -d ./src/db/data_source_test.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +21,7 @@
   "dependencies": {
     "@apollo/client": "^3.10.8",
     "@apollo/server": "^4.10.4",
+    "bcrypt": "^5.1.1",
     "express": "^4.19.2",
     "graphql": "^16.9.0",
     "joi": "^17.13.3",
@@ -29,6 +32,7 @@
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/express": "^4.17.21",
     "@types/node": "^20.14.9",
     "@vitest/coverage-istanbul": "^1.6.0",
@@ -38,6 +42,8 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.2",
+    "vite": "^5.3.4",
+    "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^1.6.0"
   }
 }

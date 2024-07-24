@@ -48,3 +48,61 @@ export const createInternship = async (req: Request, res: Response) => {
 
   return res.status(201).json({ "Internship created:": newInternship });
 };
+
+//Get all internships
+export const getInternships = (req: Request, res: Response) => {
+  const internshipRepository = AppDataSource.getRepository(Internship);
+  return internshipRepository.find().then((internships) => {
+    return res.status(200).json(internships);
+  });
+};
+
+//Get internship by ID
+export const getInternshipByID = async (req: Request, res: Response) => {
+  const internshipRepository = AppDataSource.getRepository(Internship);
+  const id = parseInt(req.params.id);
+  const internship = await internshipRepository.findOne({ where: { id } });
+  if (!internship) {
+    return res.status(404).json({ message: "Internship not found" });
+  }
+  return res.status(200).json(internship);
+};
+
+//Update an existing internship
+export const updateInternship = async (req: Request, res: Response) => {
+  const { error } = internshipSchema.validate(req.body);
+  if (error) {
+    return res.status(400).json({ message: error.message });
+  }
+
+  const internshipRepository = AppDataSource.getRepository(Internship);
+  const userRepo = AppDataSource.getRepository(User);
+  const internship = await internshipRepository.findOneById(req.params.id);
+  if (internship) {
+    const {
+      joinedDate,
+      completionDate,
+      isCertified,
+      mentorName,
+      user,
+    }: Internship = req.body;
+
+    const userEntity = await userRepo.findOne({ where: { id: user.id } });
+
+    if (!userEntity) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    internshipRepository.merge(internship, {
+      joinedDate,
+      completionDate,
+      isCertified,
+      mentorName,
+      user: userEntity,
+    });
+    const result = await internshipRepository.save(internship);
+    return res.status(200).json(result);
+  } else {
+    return res.status(404).json({ message: "Internship not found" });
+  }
+};
