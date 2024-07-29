@@ -24,6 +24,7 @@ export class Internship {
   @Column("varchar")
   mentorName!: string;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.internships)
+  @JoinColumn()
   user!: User;
 }

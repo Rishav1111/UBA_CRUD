@@ -5,6 +5,7 @@ import { getRepository } from "typeorm";
 import { AppDataSource } from "../db/data_source";
 import bcrypt from "bcrypt";
 import { jwtauth, generateToken } from "../middleware/auth_user";
+import { Role } from "../entity/Role";
 
 const userSchema = Joi.object({
   fullname: Joi.string().min(3).max(30).required(),
@@ -18,6 +19,7 @@ const userSchema = Joi.object({
     .pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)
     .required(),
   password: Joi.string().min(8).required(),
+  role: Joi.array().items(Joi.object({ id: Joi.number().required() })),
 });
 
 //Create new user
@@ -28,9 +30,13 @@ export const createUser = async (req: Request, res: Response) => {
   }
 
   const userRepo = AppDataSource.getRepository(User);
-  const { fullname, age, phoneNumber, email, password }: User = req.body;
+  const roleRepo = AppDataSource.getRepository(Role);
+  const { fullname, age, phoneNumber, email, password, role }: User = req.body;
 
-  const existingUser = await userRepo.findOne({ where: { email } });
+  const existingUser = await userRepo.findOne({
+    where: { email },
+    relations: ["role"],
+  });
   console.log(existingUser);
 
   if (existingUser !== null) {
@@ -41,12 +47,24 @@ export const createUser = async (req: Request, res: Response) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  const roleEntities = await Promise.all(
+    role.map(async (value) => {
+      let roleEntity = await roleRepo.findOne({ where: { id: value.id } });
+      if (!roleEntity) {
+        throw new Error(`Role with ID ${value.id} does not exist`);
+      }
+      return roleEntity;
+    })
+  );
+  console.log(roleEntities);
+
   const newUser = userRepo.create({
     fullname,
     age,
     phoneNumber,
     email,
     password: hashedPassword,
+    role: roleEntities,
   });
 
   await userRepo.save(newUser);
@@ -54,6 +72,7 @@ export const createUser = async (req: Request, res: Response) => {
   const payload = {
     id: newUser.id,
     fullname: newUser.fullname,
+    role: roleEntities,
   };
 
   const token = generateToken(payload);
@@ -67,7 +86,10 @@ export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const userRepo = AppDataSource.getRepository(User);
 
-  const user = await userRepo.findOne({ where: { email } });
+  const user = await userRepo.findOne({
+    where: { email },
+    relations: ["role"],
+  });
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
@@ -79,9 +101,12 @@ export const loginUser = async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Invalid Password" });
   }
 
+  const roleName = user.role.map((role) => role.name);
+
   const payload = {
     id: user.id,
     fullname: user.fullname,
+    role: roleName,
   };
 
   const token = generateToken(payload);
