@@ -4,7 +4,7 @@ import Joi from "joi";
 import { getRepository } from "typeorm";
 import { AppDataSource } from "../db/data_source";
 import bcrypt from "bcrypt";
-import { jwtauth, generateToken } from "../middleware/auth_user";
+import { generateToken } from "../middleware/auth_user";
 import { Role } from "../entity/Role";
 
 const userSchema = Joi.object({
@@ -69,16 +69,7 @@ export const createUser = async (req: Request, res: Response) => {
 
   await userRepo.save(newUser);
 
-  const payload = {
-    id: newUser.id,
-    fullname: newUser.fullname,
-    role: roleEntities,
-  };
-
-  const token = generateToken(payload);
-  console.log(token);
-
-  return res.status(201).json({ "User created:": newUser, token: token });
+  return res.status(201).json({ "User created:": newUser });
 };
 
 //Login user
@@ -107,26 +98,39 @@ export const loginUser = async (req: Request, res: Response) => {
     id: user.id,
     fullname: user.fullname,
     role: roleName,
+    Permissions: user.role.flatMap((role) => role.permissions),
   };
 
   const token = generateToken(payload);
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: true,
+    maxAge: 1000 * 60 * 60 * 24,
+  });
+
+  console.log(token);
 
   return res.status(200).json({ message: "Login Successfully", token: token });
 };
 
 //Get all users
-export const getUsers = (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response) => {
   const userRepository = AppDataSource.getRepository(User);
-  return userRepository.find().then((users) => {
-    return res.status(200).json(users);
+  const users = await userRepository.find({
+    relations: ["role", "role.permissions"],
   });
+  return res.status(200).json(users);
 };
 
 //Get user by ID
 
 export const getUserByID = async (req: Request, res: Response) => {
   const userRepository = AppDataSource.getRepository(User);
-  const user = await userRepository.findOneById(req.params.id);
+  const user = await userRepository.findOne({
+    where: { id: parseInt(req.params.id) },
+    relations: ["role", "role.permissions"],
+  });
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }

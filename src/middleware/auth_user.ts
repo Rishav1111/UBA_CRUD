@@ -3,53 +3,25 @@ import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../db/data_source";
 import { User } from "../entity/User";
 
-export const jwtauth = (req: Request, res: Response, next: NextFunction) => {
-  if (
-    !req.headers.authorization ||
-    !req.headers.authorization.startsWith("Bearer")
-  ) {
-    return res.status(401).json({ message: "Auth Error" });
-  }
-
-  const token = req.headers.authorization.split(" ")[1];
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-
-    // @ts-expect-error
-    req.user = decoded;
-
-    next();
-  } catch (error) {
-    return res.status(401).json({ message: "Invalid Token" });
-  }
-};
-
-//function to generate token
-export const generateToken = (user: any) => {
-  return jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: "1h" });
-};
-
-// export const authorizeRoles = (...roles: string[]) => {
-//   return (req: Request, res: Response, next: NextFunction) => {
-//     // @ts-expect-error
-//     if (!req.user || !roles.includes(req.user.role[0])) {
-//       return res.status(403).json({ message: "Access Denied" });
-//     }
-//     next();
-//   };
-// };
-
-export const authorizeRoles = (...requiredRoles: string[]) => {
+export const authorize = (requiredPermissions: string[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
-    // @ts-expect-error
-    if (!req.user) {
+    // Verify the JWT token
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Auth Error" });
     }
 
+    const token = authHeader.split(" ")[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+      // @ts-expect-error
+      req.user = decoded;
+    } catch (error) {
+      return res.status(401).json({ message: "Invalid Token" });
+    }
+
+    // Check if the user exists and has the necessary permissions
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOne({
       // @ts-expect-error
@@ -61,13 +33,24 @@ export const authorizeRoles = (...requiredRoles: string[]) => {
       return res.status(401).json({ message: "Auth Error" });
     }
 
-    const userRoles = user.role.map((role) => role.name);
-    const hasRole = requiredRoles.some((role) => userRoles.includes(role));
+    // Extract permissions from the user's roles
+    const userPermissions = user.role
+      .flatMap((role) => role.permissions)
+      .map((permission) => permission.name);
 
-    if (!hasRole) {
+    // Check if user has all required permissions
+    const hasPermission = requiredPermissions.every((permission) =>
+      userPermissions.includes(permission)
+    );
+
+    if (!hasPermission) {
       return res.status(403).json({ message: "Access Denied" });
     }
 
     next();
   };
+};
+//function to generate token
+export const generateToken = (user: any) => {
+  return jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: "1h" });
 };

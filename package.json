@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
     "start": "ts-node-dev src/index.ts",
     "dev": "nodemon --exec ts-node src/index.ts",
@@ -13,7 +14,7 @@
     "ts-node": "ts-node src/index.ts",
     "migration:generate": "npm run typeorm -- migration:generate -d ./src/db/data_source.ts ./src/db/migration/usermig",
     "migration:run": "npm run typeorm -- migration:run -d ./src/db/data_source.ts",
-    "migration_test:run": "npm run typeorm -- migration_test:run -d ./src/db/data_source_test.ts"
+    "migration:revert": "npm run typeorm -- migration:revert -d ./src/db/data_source.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +22,12 @@
   "dependencies": {
     "@apollo/client": "^3.10.8",
     "@apollo/server": "^4.10.4",
+    "@types/cookie-parser": "^1.4.7",
+    "@types/cors": "^2.8.17",
     "@types/jsonwebtoken": "^9.0.6",
     "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "graphql": "^16.9.0",
@@ -40,6 +45,7 @@
     "@types/node": "^20.14.9",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-istanbul": "^1.6.0",
+    "@vitest/coverage-v8": "^2.0.4",
     "@vitest/ui": "^1.6.0",
     "c8": "^10.1.2",
     "supertest": "^7.0.0",

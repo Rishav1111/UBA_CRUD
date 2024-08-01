@@ -13,7 +13,8 @@ export const AppDataSource = new DataSource({
   database: "CRUD_API",
   synchronize: false,
   entities: [User, Internship, Role, Permission],
-  logging: true,
+  logging: false,
   migrationsTableName: "custom_migration_table",
   migrations: ["./src/db/migration/*.ts"],
+  subscribers: [],
 });

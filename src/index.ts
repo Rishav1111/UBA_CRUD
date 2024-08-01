@@ -1,4 +1,3 @@
-// src/index.t
 import "reflect-metadata";
 import express, { Application } from "express";
 import { AppDataSource } from "./db/data_source";
@@ -7,12 +6,13 @@ import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./graphql/schema";
 import { resolvers } from "./graphql/resolvers";
-import { createConnection } from "typeorm";
+import cors from "cors";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
-//Graphql server
+// Initialize Apollo Server
 const server = new ApolloServer({
   typeDefs,
   resolvers,
@@ -28,10 +28,21 @@ async function startApolloServer() {
 startApolloServer();
 
 export const app: Application = express();
+
+// Use CORS middleware before defining routes
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // Use user routes
 app.use("/api", Routes);
+app.use(cookieParser());
 
 const PORT = process.env.PORT || 3000;
 
