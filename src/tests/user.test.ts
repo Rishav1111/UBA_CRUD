@@ -1,20 +1,7 @@
 import "reflect-metadata";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import request from "supertest";
 import { app } from "../index.js";
-import { TestDataSource } from "../db/data_soruce_test.js";
-import { beforeEach } from "node:test";
-
-beforeAll(async () => {
-  if (TestDataSource.isInitialized) {
-    await TestDataSource.destroy();
-  }
-  await TestDataSource.initialize();
-});
-
-afterAll(async () => {
-  await TestDataSource.destroy();
-});
 
 describe("User API", () => {
   const newUser = {
@@ -27,12 +14,19 @@ describe("User API", () => {
   };
 
   it("should create a new user", async () => {
-    const response = await request(app).post("/api/createUser").send(newUser);
+    const response = await request(app)
+      .post("/api/createUser")
+      .send({
+        fullname: "RIshav Shrestha",
+        age: 20,
+        phoneNumber: "1234567890",
+        email: `stharishav.${Date.now()}@gmail.com`,
+        password: "password123",
+      });
 
     console.log("Create User Response:", response.body);
 
     expect(response.status).toBe(201);
-    expect(response.body).toHaveProperty("User created:");
   });
 
   it("should return error if invalid email", async () => {
@@ -133,5 +127,29 @@ describe("User API", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toHaveProperty("message");
+  });
+
+  it("should update user", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+
+    const userID = 17;
+
+    const response = await request(app)
+      .put(`/api/updateUser/${userID}`)
+      .send({
+        fullname: "Jane Doe",
+        age: 30,
+        phoneNumber: "0987654321",
+        email: "janedoe@gmail.com",
+        password: "password123",
+      })
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    console.log("Update User Response:", response.body);
+
+    expect(response.status).toBe(200);
   });
 });

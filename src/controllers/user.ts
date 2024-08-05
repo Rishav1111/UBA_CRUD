@@ -19,10 +19,14 @@ const userSchema = Joi.object({
     .pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)
     .required(),
   password: Joi.string().min(8).required(),
-  role: Joi.array().items(Joi.object({ id: Joi.number().required() })),
+  role: Joi.array()
+    .items(Joi.object({ id: Joi.number().required() }))
+    .optional(),
 });
 
 //Create new user
+const DEFAULT_ROLE_ID = 2;
+
 export const createUser = async (req: Request, res: Response) => {
   const { error } = userSchema.validate(req.body);
   if (error) {
@@ -47,8 +51,12 @@ export const createUser = async (req: Request, res: Response) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // If no roles are provided, assign the default role
+  const rolesToAssign =
+    role && role.length > 0 ? role : [{ id: DEFAULT_ROLE_ID }];
+
   const roleEntities = await Promise.all(
-    role.map(async (value) => {
+    rolesToAssign.map(async (value) => {
       let roleEntity = await roleRepo.findOne({ where: { id: value.id } });
       if (!roleEntity) {
         throw new Error(`Role with ID ${value.id} does not exist`);
@@ -69,9 +77,8 @@ export const createUser = async (req: Request, res: Response) => {
 
   await userRepo.save(newUser);
 
-  return res.status(201).json({ "User created:": newUser });
+  return res.status(201).json({ message: "User created", user: newUser });
 };
-
 //Login user
 export const loginUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -104,12 +111,10 @@ export const loginUser = async (req: Request, res: Response) => {
   const token = generateToken(payload);
 
   res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
+    httpOnly: false,
+
     maxAge: 1000 * 60 * 60 * 24,
   });
-
-  console.log(token);
 
   return res.status(200).json({ message: "Login Successfully", token: token });
 };
@@ -149,7 +154,7 @@ export const updateUser = async (req: Request, res: Response) => {
   if (user) {
     userRepository.merge(user, req.body);
     const result = await userRepository.save(user);
-    return res.status(200).json(result);
+    return res.status(200).json("User updated");
   } else {
     return res.status(404).json({ message: "User not found" });
   }

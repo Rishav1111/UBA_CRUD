@@ -18,14 +18,14 @@ const server = new ApolloServer({
   resolvers,
 });
 
-async function startApolloServer() {
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 9000 },
-  });
-  console.log(`Apollo server running at ${url}graphql`);
-}
+// async function startApolloServer() {
+//   const { url } = await startStandaloneServer(server, {
+//     listen: { port: 9000 },
+//   });
+//   console.log(`Apollo server running at ${url}graphql`);
+// }
 
-startApolloServer();
+// startApolloServer();
 
 export const app: Application = express();
 

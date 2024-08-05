@@ -2,9 +2,21 @@ import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { AppDataSource } from "../db/data_source";
 import { User } from "../entity/User";
+import { Permission } from "../entity/Permission";
+
+interface customRequest extends Request {
+  user?: userProps;
+}
+
+interface userProps {
+  id: number;
+  fullname: string;
+  role: string[];
+  Permissions: Permission[];
+}
 
 export const authorize = (requiredPermissions: string[]) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
+  return async (req: customRequest, res: Response, next: NextFunction) => {
     // Verify the JWT token
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -14,8 +26,11 @@ export const authorize = (requiredPermissions: string[]) => {
     const token = authHeader.split(" ")[1];
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-      // @ts-expect-error
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string
+      ) as userProps;
+
       req.user = decoded;
     } catch (error) {
       return res.status(401).json({ message: "Invalid Token" });
@@ -24,7 +39,6 @@ export const authorize = (requiredPermissions: string[]) => {
     // Check if the user exists and has the necessary permissions
     const userRepo = AppDataSource.getRepository(User);
     const user = await userRepo.findOne({
-      // @ts-expect-error
       where: { id: req.user.id },
       relations: ["role", "role.permissions"],
     });

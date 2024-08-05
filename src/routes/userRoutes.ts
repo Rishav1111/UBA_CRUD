@@ -27,7 +27,7 @@ router.get("/getUsers", authorize(["get_all_users"]), getUsers);
 router.get("/getUser/:id", authorize(["get_user"]), getUserByID);
 
 //update user by their ID endpoint
-router.put("/updateUser/:id", authorize(["edit_users"]), updateUser);
+router.put("/updateUser/:id", authorize(["edit_user"]), updateUser);
 
 //delete user by their ID endpoint
 router.delete("/deleteUser/:id", authorize(["delete_users"]), deleteUser);
