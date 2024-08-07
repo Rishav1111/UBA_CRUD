@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { User } from "../entity/User";
 import Joi from "joi";
-import { getRepository } from "typeorm";
 import { AppDataSource } from "../db/data_source";
 import bcrypt from "bcrypt";
 import { generateToken } from "../middleware/auth_user";
@@ -144,16 +143,13 @@ export const getUserByID = async (req: Request, res: Response) => {
 
 // Update the user by their ID
 export const updateUser = async (req: Request, res: Response) => {
-  const { error } = userSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.message });
-  }
-
   const userRepository = AppDataSource.getRepository(User);
   const user = await userRepository.findOneById(req.params.id);
   if (user) {
     userRepository.merge(user, req.body);
     const result = await userRepository.save(user);
+    console.log(result);
+
     return res.status(200).json("User updated");
   } else {
     return res.status(404).json({ message: "User not found" });
