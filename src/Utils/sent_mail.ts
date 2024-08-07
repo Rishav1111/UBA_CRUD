@@ -7,8 +7,8 @@ export const sentInvitationEmail = async (email: string, token: string) => {
       port: 465,
       secure: true,
       auth: {
-        user: "shrestharishav3@gmail.com",
-        pass: "eskjtepephstbuds",
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS,
       },
     };
     const transporter = nodemailer.createTransport(mailerConfig);
