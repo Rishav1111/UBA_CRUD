@@ -8,9 +8,27 @@ import {
   updateInternship,
 } from "../controllers/internship";
 
-router.post("/createInternship", createInternship);
-router.get("/getInternships", getInternships);
-router.get("/getInternship/:id", getInternshipByID);
-router.put("/updateInternship/:id", updateInternship);
+import { authorize } from "../middleware/auth_user";
+
+router.post(
+  "/createInternship",
+  authorize(["create_internship"]),
+  createInternship
+);
+router.get(
+  "/getInternships",
+  authorize(["get_all_internship"]),
+  getInternships
+);
+router.get(
+  "/getInternship/:id",
+  authorize(["get_internship_by_id"]),
+  getInternshipByID
+);
+router.put(
+  "/updateInternship/:id",
+  authorize(["update_internship"]),
+  updateInternship
+);
 
 export default router;

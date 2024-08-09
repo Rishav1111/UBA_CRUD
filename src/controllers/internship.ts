@@ -10,7 +10,9 @@ const internshipSchema = Joi.object({
   completionDate: Joi.date().required(),
   isCertified: Joi.boolean().required(),
   mentorName: Joi.string().min(3).max(30).required(),
-  user: Joi.number().integer().required(),
+  user: Joi.object({
+    id: Joi.number().integer().required(),
+  }).required(),
 });
 
 //Create new internship
@@ -31,6 +33,8 @@ export const createInternship = async (req: Request, res: Response) => {
   }: Internship = req.body;
 
   const userEntity = await userRepo.findOne({ where: { id: user.id } });
+
+  console.log(userEntity);
 
   if (!userEntity) {
     return res.status(404).json({ message: "User not found" });
@@ -86,6 +90,8 @@ export const updateInternship = async (req: Request, res: Response) => {
       mentorName,
       user,
     }: Internship = req.body;
+
+    console.log(req.body);
 
     const userEntity = await userRepo.findOne({ where: { id: user.id } });
 
