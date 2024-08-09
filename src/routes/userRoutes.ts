@@ -9,11 +9,16 @@ import {
   updateUser,
 } from "../controllers/user";
 import { authorize } from "../middleware/auth_user";
+import { createUserByAdmin, registerUser } from "../controllers/admin";
 
 const router: Router = Router();
 
 //create user endpoint
 router.post("/createUser", createUser);
+
+//create user by admin endpoint
+router.post("/createUserByAdmin", createUserByAdmin);
+router.post("/register/user", registerUser);
 
 //login user
 router.post("/login", loginUser);
