@@ -54,11 +54,16 @@ export const createInternship = async (req: Request, res: Response) => {
 };
 
 //Get all internships
-export const getInternships = (req: Request, res: Response) => {
+export const getInternships = async (req: Request, res: Response) => {
   const internshipRepository = AppDataSource.getRepository(Internship);
-  return internshipRepository.find().then((internships) => {
+  try {
+    const internships = await internshipRepository.find({
+      relations: ["user"],
+    });
     return res.status(200).json(internships);
-  });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 //Get internship by ID
