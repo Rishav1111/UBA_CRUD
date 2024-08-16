@@ -1,15 +1,12 @@
 import "reflect-metadata";
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import request from "supertest";
 import { app } from "../index.js";
-import { TestDataSource } from "../db/data_soruce_test.js";
-import { beforeEach } from "node:test";
-import { AppDataSource } from "../db/data_source.js";
 
 describe("Internship API", () => {
   const newUser = {
     fullname: "John Doe",
-    age: 25,
+    DOB: "2002-01-01",
     phoneNumber: "1234567890",
     email: `john.doe.${Date.now()}@example.com`,
     password: "password123",
@@ -32,7 +29,7 @@ describe("Internship API", () => {
       completionDate: "2021-09-03",
       isCertified: true,
       mentorName: "John Doe",
-      user: { id: 17 },
+      user: { id: 301 },
     };
 
     const response = await request(app)
@@ -44,6 +41,31 @@ describe("Internship API", () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty("Internship created:");
+  });
+
+  it("should return error if user not found", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+
+    const newInternship = {
+      joinedDate: "2024-06-03",
+      completionDate: "2021-09-03",
+      isCertified: true,
+      mentorName: "John Doe",
+      user: { id: 264 },
+    };
+
+    const response = await request(app)
+      .post("/api/createInternship")
+      .send(newInternship)
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    console.log("User Not Found Response:", response.body);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty("message");
   });
 
   it("should return all internships", async () => {
@@ -72,7 +94,7 @@ describe("Internship API", () => {
       completionDate: "2021-09-03",
       isCertified: true,
       mentorName: "John Doe",
-      user: { id: 17 },
+      user: { id: 264 },
     };
 
     const response = await request(app)
@@ -101,7 +123,7 @@ describe("Internship API", () => {
       password: newUser.password,
     });
 
-    const internshipId = 80;
+    const internshipId = 10;
 
     const response = await request(app)
       .get(`/api/getInternship/${internshipId}`)
@@ -111,5 +133,29 @@ describe("Internship API", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("id");
+  });
+
+  it("should update an internship by id", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+
+    const internshipId = 10;
+
+    const response = await request(app)
+      .put(`/api/updateInternship/${internshipId}`)
+      .set("Authorization", `Bearer ${login_res.body.token}`)
+      .send({
+        joinedDate: "2024-06-03",
+        completionDate: "2021-09-03",
+        isCertified: true,
+        mentorName: "John Doe",
+        user: { id: 301 },
+      });
+
+    console.log("Update Internship by ID Response:", response.body);
+
+    expect(response.status).toBe(200);
   });
 });

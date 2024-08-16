@@ -1,25 +1,26 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../db/data_source";
 import { User } from "../entity/User";
-import Joi from "joi";
+
 import { Role } from "../entity/Role";
 import { generateToken } from "../middleware/auth_user";
 import { sentInvitationEmail } from "../Utils/sent_mail";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
-interface customRequest extends Request {
-  user?: userProps;
+interface CustomRequest extends Request {
+  user?: UserProps;
 }
 
-interface userProps {
+interface UserProps {
   id: number;
 }
+const userRepo = AppDataSource.getRepository(User);
+
 export const createUserByAdmin = async (req: Request, res: Response) => {
-  const { fullname, age, phoneNumber, email, role } = req.body;
+  const { fullname, DOB, phoneNumber, email, role } = req.body;
 
   try {
-    const userRepo = AppDataSource.getRepository(User);
     const roleRepo = AppDataSource.getRepository(Role);
 
     const existingUser = await userRepo.findOne({
@@ -38,7 +39,7 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
 
     const newUser = userRepo.create({
       fullname,
-      age,
+      DOB,
       phoneNumber,
       email,
       role: [userRole],
@@ -62,7 +63,7 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
   }
 };
 
-export const registerUser = async (req: Request, res: Response) => {
+export const registerUser = async (req: CustomRequest, res: Response) => {
   const { token, password, confirmPassword } = req.body;
 
   try {
@@ -73,10 +74,9 @@ export const registerUser = async (req: Request, res: Response) => {
     const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET as string
-    ) as userProps;
+    ) as UserProps;
 
     const userId = decoded.id;
-    const userRepo = AppDataSource.getRepository(User);
 
     const user = await userRepo.findOne({ where: { id: userId } });
 

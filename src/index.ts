@@ -3,7 +3,6 @@ import express, { Application } from "express";
 import { AppDataSource } from "./db/data_source";
 import Routes from "./routes/index_Routes";
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
 import { typeDefs } from "./graphql/schema";
 import { resolvers } from "./graphql/resolvers";
 import cors from "cors";
@@ -18,14 +17,13 @@ const server = new ApolloServer({
   resolvers,
 });
 
-async function startApolloServer() {
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 9000 },
-  });
-  console.log(`Apollo server running at ${url}graphql`);
-}
-
-startApolloServer();
+// async function startApolloServer() {
+//   const { url } = await startStandaloneServer(server, {
+//     listen: { port: 9000 },
+//   });
+//   console.log(`Apollo server running at ${url}graphql`);
+// }
+// startApolloServer();
 
 export const app: Application = express();
 
@@ -44,7 +42,7 @@ app.use(express.json());
 app.use("/api", Routes);
 app.use(cookieParser());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT ?? 3000;
 
 AppDataSource.initialize().then(() => {
   console.log("Data Source has been initialized!");

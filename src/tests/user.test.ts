@@ -3,10 +3,10 @@ import { describe, it, expect } from "vitest";
 import request from "supertest";
 import { app } from "../index.js";
 
-describe("User API", () => {
+describe("User API", async () => {
   const newUser = {
     fullname: "John Doe",
-    age: 25,
+    DOB: "2002-01-01",
     phoneNumber: "1234567890",
     email: `john.doe.${Date.now()}@example.com`,
     password: "password123",
@@ -18,7 +18,7 @@ describe("User API", () => {
       .post("/api/createUser")
       .send({
         fullname: "RIshav Shrestha",
-        age: 20,
+        DOB: "2002-01-01",
         phoneNumber: "1234567890",
         email: `stharishav.${Date.now()}@gmail.com`,
         password: "password123",
@@ -52,8 +52,6 @@ describe("User API", () => {
   });
 
   it("Get Users", async () => {
-    await request(app).post("/api/createUser").send(newUser);
-
     const login_res = await request(app).post("/api/login").send({
       email: newUser.email,
       password: newUser.password,
@@ -104,8 +102,6 @@ describe("User API", () => {
   });
 
   it("should login user", async () => {
-    await request(app).post("/api/createUser").send(newUser);
-
     const response = await request(app).post("/api/login").send({
       email: newUser.email,
       password: newUser.password,
@@ -129,19 +125,30 @@ describe("User API", () => {
     expect(response.body).toHaveProperty("message");
   });
 
+  it("should return error if invalid password", async () => {
+    const response = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: "invalid-password",
+    });
+
+    console.log("Invalid Password Response:", response.body);
+
+    expect(response.status).toBe(401);
+    expect(response.body).toHaveProperty("message");
+  });
+
   it("should update user", async () => {
     const login_res = await request(app).post("/api/login").send({
       email: newUser.email,
       password: newUser.password,
     });
-
-    const userID = 17;
+    const userID = 301;
 
     const response = await request(app)
       .put(`/api/updateUser/${userID}`)
       .send({
         fullname: "Jane Doe",
-        age: 30,
+        DOB: "2002-01-01",
         phoneNumber: "0987654321",
         email: "janedoe@gmail.com",
         password: "password123",
@@ -151,5 +158,87 @@ describe("User API", () => {
     console.log("Update User Response:", response.body);
 
     expect(response.status).toBe(200);
+  });
+
+  it("should return error if user not found when updating", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+
+    const userID = 3011;
+    const response = await request(app)
+      .put(`/api/updateUser/${userID}`)
+      .send({
+        fullname: "Jane Doe",
+        DOB: "2002-01-01",
+        phoneNumber: "0987654321",
+        email: "janedoe@gmail.com",
+        password: "password123",
+      })
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    expect(response.status).toBe(404);
+  });
+  it("should return user by Id  ", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+    const userID = 302;
+
+    const response = await request(app)
+      .get(`/api/getUser/${userID}`)
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    console.log("Get User by ID Response:", response.body);
+
+    expect(response.status).toBe(200);
+  });
+
+  it("should return error if user not found by Id", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+    const userID = 999;
+
+    const response = await request(app)
+      .get(`/api/getUser/${userID}`)
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty("message");
+  });
+
+  it("should delete user", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+
+    const userID = 327;
+
+    const response = await request(app)
+      .delete(`/api/deleteUser/${userID}`)
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    expect(response.status).toBe(200);
+  });
+
+  it("should return error if user not found when deleting", async () => {
+    const login_res = await request(app).post("/api/login").send({
+      email: newUser.email,
+      password: newUser.password,
+    });
+
+    const userID = 999;
+
+    const response = await request(app)
+      .delete(`/api/deleteUser/${userID}`)
+      .set("Authorization", `Bearer ${login_res.body.token}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toHaveProperty("message");
   });
 });

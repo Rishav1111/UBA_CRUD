@@ -28,11 +28,8 @@ export const sentInvitationEmail = async (email: string, token: string) => {
       </p>
     </div>`,
     };
-    // console.log(transporter);
-    const info = await transporter.sendMail(mailOptions);
-
-    // console.log(process.env.email,process.env.password);
+    await transporter.sendMail(mailOptions);
   } catch (error) {
-    console.error(error);
+    return error;
   }
 };

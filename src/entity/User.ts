@@ -18,7 +18,7 @@ export class User {
   fullname!: string;
 
   @Column("int")
-  age!: number;
+  DOB!: number;
 
   @Column("varchar")
   phoneNumber!: string;

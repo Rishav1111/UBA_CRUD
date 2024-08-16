@@ -3,6 +3,7 @@ import { AppDataSource } from "../db/data_source";
 
 import { Permission } from "../entity/Permission";
 import { Role } from "../entity/Role";
+import { In } from "typeorm";
 
 export const createPermission = async (req: Request, res: Response) => {
   const { name } = req.body;
@@ -39,7 +40,7 @@ export const addPermissionToRole = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "Role not found" });
   }
 
-  const permission = await permissionRepo.findByIds(permissionIds);
+  const permission = await permissionRepo.findBy({ id: In(permissionIds) });
   if (!permission) {
     return res.status(404).json({ message: "Permission not found" });
   }

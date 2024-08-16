@@ -7,7 +7,10 @@ export default defineConfig({
   test: {
     setupFiles: "setup.ts",
     coverage: {
-      exclude: ["src/db/data_source.ts"],
+      provider: "istanbul",
+      reportsDirectory: "coverage",
+      reporter: ["text-summary", "html", "json"],
+      exclude: ["src/db/data_source.ts", "src/graphql", "src/Utils"],
     },
 
     globals: true, // Ensure globals like 'describe' and 'it' are available

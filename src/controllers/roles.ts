@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../db/data_source";
 
 import { Role } from "../entity/Role";
-import { Permission } from "../entity/Permission";
 
 export const createRole = async (req: Request, res: Response) => {
   const { name } = req.body;

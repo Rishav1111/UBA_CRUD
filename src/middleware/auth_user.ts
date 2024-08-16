@@ -4,7 +4,7 @@ import { AppDataSource } from "../db/data_source";
 import { User } from "../entity/User";
 import { Permission } from "../entity/Permission";
 
-interface customRequest extends Request {
+interface CustomRequest extends Request {
   user?: userProps;
 }
 
@@ -16,10 +16,10 @@ interface userProps {
 }
 
 export const authorize = (requiredPermissions: string[]) => {
-  return async (req: customRequest, res: Response, next: NextFunction) => {
+  return async (req: CustomRequest, res: Response, next: NextFunction) => {
     // Verify the JWT token
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return res.status(401).json({ message: "Auth Error" });
     }
 

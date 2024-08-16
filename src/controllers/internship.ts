@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { getRepository } from "typeorm";
 import { AppDataSource } from "../db/data_source";
 import Joi from "joi";
 import { Internship } from "../entity/Internship";
@@ -84,9 +83,11 @@ export const updateInternship = async (req: Request, res: Response) => {
     return res.status(400).json({ message: error.message });
   }
 
+  const id = parseInt(req.params.id);
+
   const internshipRepository = AppDataSource.getRepository(Internship);
   const userRepo = AppDataSource.getRepository(User);
-  const internship = await internshipRepository.findOneById(req.params.id);
+  const internship = await internshipRepository.findOneBy({ id });
   if (internship) {
     const {
       joinedDate,

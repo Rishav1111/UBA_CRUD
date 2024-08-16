@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import {
+  changePassword,
   createUser,
   deleteUser,
   getUserByID,
@@ -23,8 +24,6 @@ router.post("/register/user", registerUser);
 //login user
 router.post("/login", loginUser);
 
-// router.use(jwtauth);
-
 //get all users endpoint
 router.get("/getUsers", authorize(["get_all_users"]), getUsers);
 
@@ -36,5 +35,8 @@ router.put("/updateUser/:id", authorize(["edit_user"]), updateUser);
 
 //delete user by their ID endpoint
 router.delete("/deleteUser/:id", authorize(["delete_users"]), deleteUser);
+
+//change password
+router.put("/user/changePassword/:id", changePassword);
 
 export default router;

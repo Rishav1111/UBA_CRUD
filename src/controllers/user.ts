@@ -8,14 +8,11 @@ import { Role } from "../entity/Role";
 
 const userSchema = Joi.object({
   fullname: Joi.string().min(3).max(30).required(),
-  age: Joi.number().integer().required(),
-  phoneNumber: Joi.string()
-    .pattern(/^[0-9]+$/)
-    .min(10)
-    .required(),
+  DOB: Joi.date().required(),
+  phoneNumber: Joi.string().pattern(/^\d+$/).min(10).required(),
   email: Joi.string()
     .email()
-    .pattern(/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$/)
+    .pattern(/^[a-z\d._%+-]+@[a-z\d.-]+\.[a-z]{2,4}$/)
     .required(),
   password: Joi.string().min(8).required(),
   role: Joi.array()
@@ -34,7 +31,7 @@ export const createUser = async (req: Request, res: Response) => {
 
   const userRepo = AppDataSource.getRepository(User);
   const roleRepo = AppDataSource.getRepository(Role);
-  const { fullname, age, phoneNumber, email, password, role }: User = req.body;
+  const { fullname, DOB, phoneNumber, email, password, role }: User = req.body;
 
   const existingUser = await userRepo.findOne({
     where: { email },
@@ -67,7 +64,7 @@ export const createUser = async (req: Request, res: Response) => {
 
   const newUser = userRepo.create({
     fullname,
-    age,
+    DOB,
     phoneNumber,
     email,
     password: hashedPassword,
@@ -143,8 +140,9 @@ export const getUserByID = async (req: Request, res: Response) => {
 
 // Update the user by their ID
 export const updateUser = async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
   const userRepository = AppDataSource.getRepository(User);
-  const user = await userRepository.findOneById(req.params.id);
+  const user = await userRepository.findOneBy({ id });
   if (user) {
     userRepository.merge(user, req.body);
     const result = await userRepository.save(user);
@@ -158,13 +156,48 @@ export const updateUser = async (req: Request, res: Response) => {
 
 //delete user by their ID
 export const deleteUser = async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
   const userRepository = AppDataSource.getRepository(User);
-  const user = await userRepository.findOneById(req.params.id);
+  const user = await userRepository.findBy({ id });
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   } else {
     await userRepository.remove(user);
     return res.status(200).json({ message: "User deleted" });
+  }
+};
+
+export const changePassword = async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  const { oldpassword, newpassword, confirmpassword } = req.body;
+
+  const userRepository = AppDataSource.getRepository(User);
+
+  const user = await userRepository.findOneBy({ id });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isMatch = await bcrypt.compare(oldpassword, user.password);
+
+  if (!isMatch) {
+    return res.status(401).json({ message: "Invalid Password" });
+  }
+  if (newpassword !== confirmpassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(newpassword, 10);
+
+    user.password = hashedPassword;
+    await userRepository.save(user);
+
+    return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
