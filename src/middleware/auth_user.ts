@@ -15,7 +15,7 @@ interface userProps {
     Permissions: Permission[];
 }
 
-      export const authorize = (requiredPermissions: string[]) => {
+export const authorize = (requiredPermissions: string[]) => {
     return async (req: CustomRequest, res: Response, next: NextFunction) => {
         // Verify the JWT token
         const authHeader = req.headers.authorization;
