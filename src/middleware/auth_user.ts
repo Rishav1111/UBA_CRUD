@@ -65,6 +65,6 @@ export const authorize = (requiredPermissions: string[]) => {
   };
 };
 //function to generate token
-export const generateToken = (user: string) => {
+export const generateToken = (user: any) => {
   return jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: "1h" });
 };

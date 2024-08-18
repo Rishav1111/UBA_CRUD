@@ -15,9 +15,9 @@ interface CustomRequest extends Request {
 interface UserProps {
   id: number;
 }
-const userRepo = AppDataSource.getRepository(User);
+    const userRepo = AppDataSource.getRepository(User);
 
-export const createUserByAdmin = async (req: Request, res: Response) => {
+      export const createUserByAdmin = async (req: Request, res: Response) => {
   const { fullname, DOB, phoneNumber, email, role } = req.body;
 
   try {
