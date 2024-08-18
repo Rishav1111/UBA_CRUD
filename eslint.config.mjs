@@ -4,6 +4,7 @@ import tsPlugin from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 import vitest from "eslint-plugin-vitest";
 import prettier from "eslint-plugin-prettier";
+import ts from "typescript";
 
 export default [
   {
@@ -34,4 +35,8 @@ export default [
       sourceType: "commonjs",
     },
   },
+  pluginJS.configs.recommended,
+  tseslint.configs.recommended,
+  vitest.configs.recommended,
+  prettierConfig,
 ];
