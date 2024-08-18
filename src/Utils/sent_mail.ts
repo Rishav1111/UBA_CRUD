@@ -1,22 +1,22 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 
 export const sentInvitationEmail = async (email: string, token: string) => {
-  try {
-    const mailerConfig = {
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASS,
-      },
-    };
-    const transporter = nodemailer.createTransport(mailerConfig);
-    const mailOptions = {
-      from: "IMS <shrestharishav3@gmail.com>",
-      to: email,
-      subject: "Invitation to register",
-      html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+    try {
+        const mailerConfig = {
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.EMAIL_PASS,
+            },
+        };
+        const transporter = nodemailer.createTransport(mailerConfig);
+        const mailOptions = {
+            from: 'IMS <shrestharishav3@gmail.com>',
+            to: email,
+            subject: 'Invitation to register',
+            html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
       <h1 style="color: #333;">Welcome to UBA-IMS!</h1>
       <p style="font-size: 16px; color: #555;">
         You have been invited to join our platform. To complete your registration, please click the link below:
@@ -27,9 +27,9 @@ export const sentInvitationEmail = async (email: string, token: string) => {
         If you did not request this, please ignore this email.
       </p>
     </div>`,
-    };
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    return error;
-  }
+        };
+        await transporter.sendMail(mailOptions);
+    } catch (error) {
+        return error;
+    }
 };

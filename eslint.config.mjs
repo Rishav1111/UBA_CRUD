@@ -7,7 +7,7 @@ import prettier from "eslint-plugin-prettier";
 
 export default [
   {
-    ignores: ["dist/", "node_modules/", "html/assets/", "src/graphql/"],
+    ignores: ["dist/", "node_modules/", "html/", "src/graphql/"],
   },
   {
     files: ["src/**/*.{js,ts,cjs,tsx}", "tests/**/*.{js,ts,cjs,tsx}"],
@@ -25,7 +25,7 @@ export default [
       ...js.configs.recommended.rules,
       ...tsPlugin.configs.recommended.rules,
       "prettier/prettier": "error",
-      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/ban-ts-comment": "warn", // Adjust this rule as needed
     },
   },
   {
