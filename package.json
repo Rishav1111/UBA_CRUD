@@ -17,6 +17,7 @@
     "migration:revert": "npm run typeorm -- migration:revert -d ./src/db/data_source.ts",
     "lint": "npx eslint .",
     "lint:fix": "eslint --fix",
+    "format": "prettier --write .",
     "prepare": "husky install"
   },
   "lint-staged": {

@@ -17,6 +17,10 @@ export default [
       sourceType: "module",
       globals: globals.node,
     },
+    extends: ["plugin:@typescript-eslint/recommended",
+      "prettier",
+      "eslint:recommended",
+    ],
     plugins: {
       "@typescript-eslint": tsPlugin,
       vitest,
