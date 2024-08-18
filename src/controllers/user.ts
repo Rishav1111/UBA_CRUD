@@ -26,6 +26,7 @@ const DEFAULT_ROLE_ID = 2;
 export const createUser = async (req: Request, res: Response) => {
     const { error } = userSchema.validate(req.body);
     if (error) {
+        console.error(error);
         return res.status(400).json({ message: error.message });
     }
 
@@ -43,7 +44,7 @@ export const createUser = async (req: Request, res: Response) => {
     if (existingUser !== null) {
         return res
             .status(409)
-            .json({ message: 'User with the same email already exists.' });
+            .json({ message: 'User with the same email already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

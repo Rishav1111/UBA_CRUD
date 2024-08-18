@@ -17,7 +17,7 @@ interface UserProps {
 }
 const userRepo = AppDataSource.getRepository(User);
 
-        export const createUserByAdmin = async (req: Request, res: Response) => {
+export const createUserByAdmin = async (req: Request, res: Response) => {
     const { fullname, DOB, phoneNumber, email, role } = req.body;
 
     try {
