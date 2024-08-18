@@ -13,22 +13,22 @@ import { authorize } from "../middleware/auth_user";
 router.post(
   "/createInternship",
   authorize(["create_internship"]),
-  createInternship
+  createInternship,
 );
 router.get(
   "/getInternships",
   authorize(["get_all_internship"]),
-  getInternships
+  getInternships,
 );
 router.get(
   "/getInternship/:id",
   authorize(["get_internship_by_id"]),
-  getInternshipByID
+  getInternshipByID,
 );
 router.put(
   "/updateInternship/:id",
   authorize(["update_internship"]),
-  updateInternship
+  updateInternship,
 );
 
 export default router;

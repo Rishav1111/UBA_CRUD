@@ -180,7 +180,7 @@ describe("User API", async () => {
 
     expect(response.status).toBe(404);
   });
-  it("should return user by Id  ", async () => {
+  it("should return user by Id", async () => {
     const login_res = await request(app).post("/api/login").send({
       email: newUser.email,
       password: newUser.password,

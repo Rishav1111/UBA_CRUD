@@ -28,12 +28,12 @@ export const authorize = (requiredPermissions: string[]) => {
     try {
       decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET as string
+        process.env.JWT_SECRET as string,
       ) as userProps;
 
       req.user = decoded;
     } catch (error) {
-      return res.status(401).json({ message: "Invalid Token" });
+      return res.status(401).json({ message: `Invalid Token ${error}` });
     }
 
     // Check if the user exists and has the necessary permissions
@@ -54,7 +54,7 @@ export const authorize = (requiredPermissions: string[]) => {
 
     // Check if user has all required permissions
     const hasPermission = requiredPermissions.every((permission) =>
-      userPermissions.includes(permission)
+      userPermissions.includes(permission),
     );
 
     if (!hasPermission) {
@@ -65,6 +65,6 @@ export const authorize = (requiredPermissions: string[]) => {
   };
 };
 //function to generate token
-export const generateToken = (user: any) => {
+export const generateToken = (user: string) => {
   return jwt.sign(user, process.env.JWT_SECRET as string, { expiresIn: "1h" });
 };

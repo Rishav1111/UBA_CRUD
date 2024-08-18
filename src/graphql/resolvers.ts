@@ -28,7 +28,7 @@ export const resolvers = {
         sortOrder?: "asc" | "desc";
         offset?: number;
         limit?: number;
-      }
+      },
     ) => {
       const order = sortOrder.toUpperCase() as "ASC" | "DESC";
       const users = await userRepository.find({

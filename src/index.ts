@@ -2,9 +2,6 @@ import "reflect-metadata";
 import express, { Application } from "express";
 import { AppDataSource } from "./db/data_source";
 import Routes from "./routes/index_Routes";
-import { ApolloServer } from "@apollo/server";
-import { typeDefs } from "./graphql/schema";
-import { resolvers } from "./graphql/resolvers";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
@@ -12,10 +9,10 @@ import cookieParser from "cookie-parser";
 dotenv.config();
 
 // Initialize Apollo Server
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-});
+// const server = new ApolloServer({
+//   typeDefs,
+//   resolvers,
+// });
 
 // async function startApolloServer() {
 //   const { url } = await startStandaloneServer(server, {
@@ -33,7 +30,7 @@ app.use(
     origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());

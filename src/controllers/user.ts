@@ -58,7 +58,7 @@ export const createUser = async (req: Request, res: Response) => {
         throw new Error(`Role with ID ${value.id} does not exist`);
       }
       return roleEntity;
-    })
+    }),
   );
   console.log(roleEntities);
 

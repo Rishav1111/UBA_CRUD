@@ -73,7 +73,7 @@ export const registerUser = async (req: CustomRequest, res: Response) => {
 
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET as string
+      process.env.JWT_SECRET as string,
     ) as UserProps;
 
     const userId = decoded.id;
