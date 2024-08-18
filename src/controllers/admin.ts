@@ -30,13 +30,15 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
         if (existingUser) {
             return res
                 .status(409)
-                .json({ message: 'User with the same email already exists' });
+                .json({
+                    message: 'User with the same email already exists!!!',
+                });
         }
         const userRole = await roleRepo.findOne({
             where: { name: role[0].name },
         });
         if (!userRole) {
-            return res.status(404).json({ message: 'Role not found' });
+            return res.status(404).json({ message: 'Role not found!!' });
         }
 
         const newUser = userRepo.create({
