@@ -2,18 +2,20 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { AppDataSource } from '../db/data_source';
 import { User } from '../entity/User';
-import { Permission } from '../entity/Permission';
+import { getCache, setCache } from '../Utils/cacheUtils';
+import { Role } from '../models/role.model';
+import { getRoles } from '../controllers/roles';
 
 interface CustomRequest extends Request {
-    user?: userProps;
+    user?: any;
 }
 
-interface userProps {
-    id: number;
-    fullname: string;
-    role: string[];
-    Permissions: Permission[];
-}
+// interface userProps {
+//     id: number;
+//     fullname: string;
+//     role: string;
+//     permissions: string[];
+// }
 
 export const authorize = (requiredPermissions: string[]) => {
     return async (req: CustomRequest, res: Response, next: NextFunction) => {
@@ -26,34 +28,30 @@ export const authorize = (requiredPermissions: string[]) => {
         const token = authHeader.split(' ')[1];
         let decoded;
         try {
-            decoded = jwt.verify(
-                token,
-                process.env.JWT_SECRET as string
-            ) as userProps;
-
+            decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
             req.user = decoded;
         } catch (error) {
             return res.status(401).json({ message: `Invalid Token ${error}` });
         }
 
-        // Check if the user exists and has the necessary permissions
-        const userRepo = AppDataSource.getRepository(User);
-        const user = await userRepo.findOne({
-            where: { id: req.user.id },
-            relations: ['role', 'role.permissions'],
-        });
-
-        if (!user) {
-            return res.status(401).json({ message: 'Auth Error' });
+        // Fetch roles and permissions from cache or MongoDB
+        let roles;
+        try {
+            roles = await getRoles();
+        } catch (error) {
+            return res.status(500).json({ message: 'Error fetching roles' });
         }
 
-        // Extract permissions from the user's roles
-        const userPermissions = user.role
-            .flatMap((role) => role.permissions)
-            .map((permission) => permission.name);
+        // Extract permissions from the roles
+        const userRole = roles.find((role: { name: string; }) => req.user && role.name === req.user.role);
+        if (!userRole) {
+            return res.status(403).json({ message: 'Role not found' });
+        }
+
+        const userPermissions = userRole.permissions.map((permission: { name: string; }) => permission.name);
 
         // Check if user has all required permissions
-        const hasPermission = requiredPermissions.every((permission) =>
+        const hasPermission = requiredPermissions.every(permission =>
             userPermissions.includes(permission)
         );
 
@@ -64,6 +62,7 @@ export const authorize = (requiredPermissions: string[]) => {
         next();
     };
 };
+
 //function to generate token
 export const generateToken = (user: any) => {
     return jwt.sign(user, process.env.JWT_SECRET as string, {

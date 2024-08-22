@@ -1,8 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User } from '../entity/User';
 import { Internship } from '../entity/Internship';
-import { Role } from '../entity/Role';
-import { Permission } from '../entity/Permission';
+// import { Permission } from '../entity/Permission';
 
 export const AppDataSource = new DataSource({
     type: 'mysql',
@@ -12,7 +11,7 @@ export const AppDataSource = new DataSource({
     password: '',
     database: 'CRUD_API',
     synchronize: false,
-    entities: [User, Internship, Role, Permission],
+    entities: [User, Internship],
     logging: false,
     migrationsTableName: 'custom_migration_table',
     migrations: ['./src/db/migration/*.ts'],

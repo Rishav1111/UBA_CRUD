@@ -5,6 +5,9 @@ import Routes from './routes/index_Routes';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import { getUsersFromDatabase } from './controllers/user';
+import { indexUsersToElasticsearch } from './elasticsearch/indexUsers';
+import { connectMongoDB } from './db/mongodb';
 
 dotenv.config();
 
@@ -35,14 +38,20 @@ app.use(
 
 app.use(express.json());
 
+connectMongoDB();
+
 // Use user routes
 app.use('/api', Routes);
 app.use(cookieParser());
 
 const PORT = process.env.PORT ?? 3000;
 
-AppDataSource.initialize().then(() => {
+AppDataSource.initialize().then(async () => {
     console.log('Data Source has been initialized!');
+
+    const users = await getUsersFromDatabase();
+
+    await indexUsersToElasticsearch(users);
 
     app.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);

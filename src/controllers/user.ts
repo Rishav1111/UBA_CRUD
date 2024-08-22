@@ -4,7 +4,18 @@ import Joi from 'joi';
 import { AppDataSource } from '../db/data_source';
 import bcrypt from 'bcrypt';
 import { generateToken } from '../middleware/auth_user';
-import { Role } from '../entity/Role';
+import { Role } from '../models/role.model';
+import { client } from '../elasticsearchClient';
+import { getCache, setCache } from '../Utils/cacheUtils';
+
+interface UserSearchResult {
+    _id: string;
+    _source: {
+        fullname: string;
+        email: string;
+        phoneNumber: string;
+    };
+}
 
 const userSchema = Joi.object({
     fullname: Joi.string().min(3).max(30).required(),
@@ -21,7 +32,7 @@ const userSchema = Joi.object({
 });
 
 //Create new user
-const DEFAULT_ROLE_ID = 2;
+const DEFAULT_ROLE_ID = '66c6bb69e2ce368d8d52fc9b';
 
 export const createUser = async (req: Request, res: Response) => {
     const { error } = userSchema.validate(req.body);
@@ -31,17 +42,11 @@ export const createUser = async (req: Request, res: Response) => {
     }
 
     const userRepo = AppDataSource.getRepository(User);
-    const roleRepo = AppDataSource.getRepository(Role);
-    const { fullname, DOB, phoneNumber, email, password, role }: User =
+    const { fullname, DOB, phoneNumber, email, password, roleId }: User =
         req.body;
 
-    const existingUser = await userRepo.findOne({
-        where: { email },
-        relations: ['role'],
-    });
-    console.log(existingUser);
-
-    if (existingUser !== null) {
+    const existingUser = await userRepo.findOne({ where: { email } });
+    if (existingUser) {
         return res
             .status(409)
             .json({ message: 'User with the same email already exists' });
@@ -49,33 +54,33 @@ export const createUser = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // If no roles are provided, assign the default role
-    const rolesToAssign =
-        role && role.length > 0 ? role : [{ id: DEFAULT_ROLE_ID }];
-
-    const roleEntities = await Promise.all(
-        rolesToAssign.map(async (value) => {
-            let roleEntity = await roleRepo.findOne({
-                where: { id: value.id },
-            });
-            if (!roleEntity) {
-                throw new Error(`Role with ID ${value.id} does not exist`);
-            }
-            return roleEntity;
-        })
-    );
-    console.log(roleEntities);
-
     const newUser = userRepo.create({
         fullname,
         DOB,
         phoneNumber,
         email,
         password: hashedPassword,
-        role: roleEntities,
+        roleId: Array.isArray(roleId) ? roleId[0] : roleId || DEFAULT_ROLE_ID,
     });
 
     await userRepo.save(newUser);
+    // Index the user in Elasticsearch after saving to MySQL
+    try {
+        await client.index({
+            index: 'users_list',
+            id: newUser.id.toString(),
+            body: {
+                id: newUser.id,
+                fullname: newUser.fullname,
+                phoneNumber: newUser.phoneNumber,
+                DOB: newUser.DOB,
+                email: newUser.email,
+            },
+        });
+        console.log('User indexed successfully in Elasticsearch');
+    } catch (indexingError) {
+        console.error('Error indexing user in Elasticsearch:', indexingError);
+    }
 
     return res.status(201).json({ message: 'User created', user: newUser });
 };
@@ -86,8 +91,9 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const user = await userRepo.findOne({
         where: { email },
-        relations: ['role'],
+        select: ['id', 'fullname', 'password', 'roleId'], 
     });
+
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -99,13 +105,22 @@ export const loginUser = async (req: Request, res: Response) => {
         return res.status(401).json({ message: 'Invalid Password' });
     }
 
-    const roleName = user.role.map((role) => role.name);
+   // Fetch role details from Redis cache or MongoDB
+   let roleData = await getCache(`role_${user.id}`);
+   if (!roleData) {
+       const role = await Role.findById(user.roleId).populate('permissions');
+       if (!role) {
+           return res.status(404).json({ message: 'Role not found' });
+       }
+       roleData = role.toObject();
+       await setCache(`role_${user.roleId}`, roleData); // Store role in cache
+   }
 
     const payload = {
         id: user.id,
         fullname: user.fullname,
-        role: roleName,
-        Permissions: user.role.flatMap((role) => role.permissions),
+        role: roleData.name,
+        Permissions: roleData.permissions.map((perm: any) => perm.name),
     };
 
     const token = generateToken(payload);
@@ -124,10 +139,39 @@ export const loginUser = async (req: Request, res: Response) => {
 //Get all users
 export const getUsers = async (req: Request, res: Response) => {
     const userRepository = AppDataSource.getRepository(User);
-    const users = await userRepository.find({
-        relations: ['role', 'role.permissions'],
-    });
+    const users = await userRepository.find();
     return res.status(200).json(users);
+};
+
+export const getUsersFromDatabase = async () => {
+    const userRepository = AppDataSource.getRepository(User);
+    const users = await userRepository.find();
+    return users;
+};
+//elastic search
+
+// Elasticsearch search
+export const searchUsers = async (req: Request, res: Response) => {
+    const query = req.query.q as string;
+
+    try {
+        const body = await client.search<UserSearchResult>({
+            index: 'users_list',
+            body: {
+                query: {
+                    multi_match: {
+                        query,
+                        fields: ['fullname', 'email', 'phoneNumber'],
+                    },
+                },
+            },
+        });
+
+        return res.status(200).json(body.hits.hits);
+    } catch (error) {
+        console.error('Error searching users:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
 };
 
 //Get user by ID
@@ -136,7 +180,6 @@ export const getUserByID = async (req: Request, res: Response) => {
     const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOne({
         where: { id: parseInt(req.params.id) },
-        relations: ['role', 'role.permissions'],
     });
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -206,6 +249,22 @@ export const changePassword = async (req: Request, res: Response) => {
             .json({ message: 'Password changed successfully' });
     } catch (error) {
         console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+export const userInjection = async (req: Request, res: Response) => {
+    const { email } = req.params;
+
+    const userRepository = AppDataSource.getRepository(User);
+
+    try {
+        const query = `SELECT * FROM user WHERE email = '${email}'`;
+
+        const user = await userRepository.query(query);
+        return res.status(200).json(user);
+    } catch (error) {
+        console.error('Error:', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };
