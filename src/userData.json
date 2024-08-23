@@ -1,58 +1,58 @@
 [
-  {
-    "id": 1,
-    "fullname": "Rishav Shrestha",
-    "age": 21,
-    "phoneNumber": 98000000000,
-    "email": "shrestharishav@gmail.com",
-    "password": "12345678"
-  },
-  {
-    "id": 2,
-    "fullname": "John Doe",
-    "age": 21,
-    "phoneNumber": 9876543210,
-    "email": "johndoe@example.com",
-    "password": "password123"
-  },
-  {
-    "id": 3,
-    "fullname": "Jane Smith",
-    "age": 21,
-    "phoneNumber": 1234567890,
-    "email": "janesmith@example.com",
-    "password": "qwertyuiop"
-  },
-  {
-    "id": 4,
-    "fullname": "Alice Johnson",
-    "age": 21,
-    "phoneNumber": 5555555555,
-    "email": "alicejohnson@example.com",
-    "password": "abcdefg"
-  },
-  {
-    "id": 5,
-    "fullname": "Bob Williams",
-    "age": 21,
-    "phoneNumber": 9999999999,
-    "email": "bobwilliams@example.com",
-    "password": "password123"
-  },
-  {
-    "id": 6,
-    "fullname": "Ram Shrestha",
-    "age": 21,
-    "phoneNumber": "98000000000",
-    "email": "ram@gmail.com",
-    "password": "12345678"
-  },
-  {
-    "id": 7,
-    "fullname": "Alice",
-    "age": 22,
-    "phoneNumber": "1112223334",
-    "email": "jane@example.com",
-    "password": "password789"
-  }
+    {
+        "id": 1,
+        "fullname": "Rishav Shrestha",
+        "age": 21,
+        "phoneNumber": 98000000000,
+        "email": "shrestharishav@gmail.com",
+        "password": "12345678"
+    },
+    {
+        "id": 2,
+        "fullname": "John Doe",
+        "age": 21,
+        "phoneNumber": 9876543210,
+        "email": "johndoe@example.com",
+        "password": "password123"
+    },
+    {
+        "id": 3,
+        "fullname": "Jane Smith",
+        "age": 21,
+        "phoneNumber": 1234567890,
+        "email": "janesmith@example.com",
+        "password": "qwertyuiop"
+    },
+    {
+        "id": 4,
+        "fullname": "Alice Johnson",
+        "age": 21,
+        "phoneNumber": 5555555555,
+        "email": "alicejohnson@example.com",
+        "password": "abcdefg"
+    },
+    {
+        "id": 5,
+        "fullname": "Bob Williams",
+        "age": 21,
+        "phoneNumber": 9999999999,
+        "email": "bobwilliams@example.com",
+        "password": "password123"
+    },
+    {
+        "id": 6,
+        "fullname": "Ram Shrestha",
+        "age": 21,
+        "phoneNumber": "98000000000",
+        "email": "ram@gmail.com",
+        "password": "12345678"
+    },
+    {
+        "id": 7,
+        "fullname": "Alice",
+        "age": 22,
+        "phoneNumber": "1112223334",
+        "email": "jane@example.com",
+        "password": "password789"
+    }
 ]
