@@ -10,7 +10,7 @@ describe('User API', async () => {
         phoneNumber: '1234567890',
         email: `john.doe.${Date.now()}@example.com`,
         password: 'password123',
-        roleId: "66c6bb73e2ce368d8d52fc9d",
+        roleId: '66c6bb73e2ce368d8d52fc9d',
     };
 
     it('should create a new user', async () => {
@@ -66,7 +66,6 @@ describe('User API', async () => {
         console.log('Get Users Response:', response.body);
 
         expect(response.status).toBe(200);
-    
     });
 
     it('should return error if no token provided while getting users', async () => {

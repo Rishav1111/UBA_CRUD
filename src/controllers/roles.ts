@@ -40,4 +40,3 @@ export const getRoles = async () => {
         throw new Error('Internal server error');
     }
 };
-
