@@ -5,11 +5,11 @@ import { Internship } from '../entity/Internship';
 
 export const AppDataSource = new DataSource({
     type: 'mysql',
-    host: '127.0.0.1',
+    host: 'localhost',
     port: 3306,
     username: 'root',
-    password: '',
-    database: 'CRUD_API',
+    password: 'root',
+    database: 'ims-cms',
     synchronize: false,
     entities: [User, Internship],
     logging: false,
@@ -17,3 +17,4 @@ export const AppDataSource = new DataSource({
     migrations: ['./src/db/migration/*.ts'],
     subscribers: [],
 });
+ 

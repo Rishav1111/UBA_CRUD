@@ -41,24 +41,21 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
 
         const existingUser = await userRepo.findOne({
             where: { email },
-            // relations: ['role'], // Uncomment if you use relations
+            // relations: ['role'],
         });
 
         if (existingUser) {
-            return res
-                .status(409)
-                .json({
-                    message: 'User with the same email already exists!!!',
-                });
+            return res.status(409).json({
+                message: 'User with the same email already exists!!!',
+            });
         }
 
         // Create a new user with the role ID
         const newUser = userRepo.create({
-            fullname,
+            fullname, 
             DOB,
             phoneNumber,
             email,
-            // Use the role ID directly
             roleId: userRole._id,
         });
 

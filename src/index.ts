@@ -49,9 +49,9 @@ const PORT = process.env.PORT ?? 3000;
 AppDataSource.initialize().then(async () => {
     console.log('Data Source has been initialized!');
 
-    const users = await getUsersFromDatabase();
+    // const users = await getUsersFromDatabase();
 
-    await indexUsersToElasticsearch(users);
+    // await indexUsersToElasticsearch(users);
 
     app.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);

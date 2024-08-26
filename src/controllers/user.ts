@@ -47,9 +47,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     const existingUser = await userRepo.findOne({ where: { email } });
     if (existingUser) {
-        return res
-            .status(409)
-            .json({ message: 'User with the same email already exists' });
+        return res.status(409).json({ message: "Email already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -212,6 +210,11 @@ export const deleteUser = async (req: Request, res: Response) => {
         return res.status(404).json({ message: 'User not found' });
     } else {
         await userRepository.remove(user);
+
+        await client.delete({
+            index: 'users_list',
+            id: id.toString(),
+        });
         return res.status(200).json({ message: 'User deleted' });
     }
 };

@@ -23,7 +23,7 @@ export const createInternship = async (req: Request, res: Response) => {
 
     const internshipRepo = AppDataSource.getRepository(Internship);
     const userRepo = AppDataSource.getRepository(User);
-                const {
+    const {
         joinedDate,
         completionDate,
         isCertified,
@@ -31,15 +31,15 @@ export const createInternship = async (req: Request, res: Response) => {
         user,
     }: Internship = req.body;
 
-             const userEntity = await userRepo.findOne({ where: { id: user.id } });
+    const userEntity = await userRepo.findOne({ where: { id: user.id } });
 
-            console.log(userEntity);
+    console.log(userEntity);
 
     if (!userEntity) {
         return res.status(404).json({ message: 'User not found' });
     }
 
-                const newInternship = internshipRepo.create({
+    const newInternship = internshipRepo.create({
         joinedDate,
         completionDate,
         isCertified,
