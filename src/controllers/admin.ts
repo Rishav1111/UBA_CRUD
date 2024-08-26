@@ -19,26 +19,35 @@ interface UserProps {
 const userRepo = AppDataSource.getRepository(User);
 
 export const createUserByAdmin = async (req: Request, res: Response) => {
-    const { fullname, DOB, phoneNumber, email, roleId: requestedRoleName } = req.body;
+    const {
+        fullname,
+        DOB,
+        phoneNumber,
+        email,
+        roleId: requestedRoleName,
+    } = req.body;
 
     try {
         // Fetch roles from NoSQL database
         const roles = await getRoles();
-        const userRole = roles.find((role: { name: string; _id: string }) => role.name === requestedRoleName);
-        
+        const userRole = roles.find(
+            (role: { name: string; _id: string }) =>
+                role.name === requestedRoleName
+        );
+
         if (!userRole) {
             return res.status(404).json({ message: 'Role not found!!' });
         }
 
         const existingUser = await userRepo.findOne({
             where: { email },
-            // relations: ['role'], // Uncomment if you use relations
+            // relations: ['role'],
         });
 
         if (existingUser) {
-            return res
-                .status(409)
-                .json({ message: 'User with the same email already exists!!!' });
+            return res.status(409).json({
+                message: 'User with the same email already exists!!!',
+            });
         }
 
         // Create a new user with the role ID
@@ -47,7 +56,6 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
             DOB,
             phoneNumber,
             email,
-            // Use the role ID directly
             roleId: userRole._id,
         });
 
@@ -60,7 +68,9 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
 
         await sentInvitationEmail(newUser.email, token);
 
-        return res.status(201).json({ message: 'User created and invitation sent', token });
+        return res
+            .status(201)
+            .json({ message: 'User created and invitation sent', token });
     } catch (error) {
         console.error('Error creating user', error);
         return res.status(500).json({ message: 'Internal server error' });
@@ -94,7 +104,7 @@ export const registerUser = async (req: CustomRequest, res: Response) => {
 
         res.status(200).json({ message: 'User registered successfully' });
     } catch (error) {
-        console.error('Error registering user', error); 
+        console.error('Error registering user', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
 };

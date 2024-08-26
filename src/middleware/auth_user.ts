@@ -28,7 +28,10 @@ export const authorize = (requiredPermissions: string[]) => {
         const token = authHeader.split(' ')[1];
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET as string) as any;
+            decoded = jwt.verify(
+                token,
+                process.env.JWT_SECRET as string
+            ) as any;
             req.user = decoded;
         } catch (error) {
             return res.status(401).json({ message: `Invalid Token ${error}` });
@@ -43,15 +46,19 @@ export const authorize = (requiredPermissions: string[]) => {
         }
 
         // Extract permissions from the roles
-        const userRole = roles.find((role: { name: string; }) => req.user && role.name === req.user.role);
+        const userRole = roles.find(
+            (role: { name: string }) => req.user && role.name === req.user.role
+        );
         if (!userRole) {
             return res.status(403).json({ message: 'Role not found' });
         }
 
-        const userPermissions = userRole.permissions.map((permission: { name: string; }) => permission.name);
+        const userPermissions = userRole.permissions.map(
+            (permission: { name: string }) => permission.name
+        );
 
         // Check if user has all required permissions
-        const hasPermission = requiredPermissions.every(permission =>
+        const hasPermission = requiredPermissions.every((permission) =>
             userPermissions.includes(permission)
         );
 

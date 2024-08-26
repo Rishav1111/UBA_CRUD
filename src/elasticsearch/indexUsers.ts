@@ -14,13 +14,13 @@ export const indexUsersToElasticsearch = async (users: User[]) => {
             email: user.email,
         },
     ]);
-  
+
     try {
         const response = await client.bulk({
             refresh: true,
             body: bulkOperations,
         });
- 
+
         // Access body correctly
         const { body }: any = response;
         if (body.errors) {

@@ -47,9 +47,7 @@ export const createUser = async (req: Request, res: Response) => {
 
     const existingUser = await userRepo.findOne({ where: { email } });
     if (existingUser) {
-        return res
-            .status(409)
-            .json({ message: 'User with the same email already exists' });
+        return res.status(409).json({ message: 'Email already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -91,9 +89,8 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const user = await userRepo.findOne({
         where: { email },
-        select: ['id', 'fullname', 'password', 'roleId'], 
+        select: ['id', 'fullname', 'password', 'roleId'],
     });
-
 
     if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -105,16 +102,16 @@ export const loginUser = async (req: Request, res: Response) => {
         return res.status(401).json({ message: 'Invalid Password' });
     }
 
-   // Fetch role details from Redis cache or MongoDB
-   let roleData = await getCache(`role_${user.id}`);
-   if (!roleData) {
-       const role = await Role.findById(user.roleId).populate('permissions');
-       if (!role) {
-           return res.status(404).json({ message: 'Role not found' });
-       }
-       roleData = role.toObject();
-       await setCache(`role_${user.roleId}`, roleData); // Store role in cache
-   }
+    // Fetch role details from Redis cache or MongoDB
+    let roleData = await getCache(`role_${user.id}`);
+    if (!roleData) {
+        const role = await Role.findById(user.roleId).populate('permissions');
+        if (!role) {
+            return res.status(404).json({ message: 'Role not found' });
+        }
+        roleData = role.toObject();
+        await setCache(`role_${user.roleId}`, roleData); // Store role in cache
+    }
 
     const payload = {
         id: user.id,
@@ -213,6 +210,11 @@ export const deleteUser = async (req: Request, res: Response) => {
         return res.status(404).json({ message: 'User not found' });
     } else {
         await userRepository.remove(user);
+
+        await client.delete({
+            index: 'users_list',
+            id: id.toString(),
+        });
         return res.status(200).json({ message: 'User deleted' });
     }
 };

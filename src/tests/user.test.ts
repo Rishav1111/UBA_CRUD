@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { app } from '../index.js';
 
@@ -10,8 +10,22 @@ describe('User API', async () => {
         phoneNumber: '1234567890',
         email: `john.doe.${Date.now()}@example.com`,
         password: 'password123',
-        roleId: "66c6bb73e2ce368d8d52fc9d",
+        roleId: '66c6bb73e2ce368d8d52fc9d',
     };
+
+    let token: string;
+
+    const loginAndGetToken = async (email: string, password: string) => {
+        const response = await request(app)
+            .post('/api/login')
+            .send({ email, password });
+
+        return response.body.token;
+    };
+
+    beforeEach(async () => {
+        token = await loginAndGetToken(newUser.email, newUser.password);
+    });
 
     it('should create a new user', async () => {
         const response = await request(app)
@@ -53,20 +67,14 @@ describe('User API', async () => {
         expect(response.body).toHaveProperty('message');
     });
 
-    it('Get Users', async () => {
-        const login_res = await request(app).post('/api/login').send({
-            email: newUser.email,
-            password: newUser.password,
-        });
-
+    it('should get users', async () => {
         const response = await request(app)
             .get('/api/getUsers')
-            .set('Authorization', `Bearer ${login_res.body.token}`);
+            .set('Authorization', `Bearer ${token}`);
 
         console.log('Get Users Response:', response.body);
 
         expect(response.status).toBe(200);
-    
     });
 
     it('should return error if no token provided while getting users', async () => {
@@ -140,10 +148,6 @@ describe('User API', async () => {
     });
 
     it('should update user', async () => {
-        const login_res = await request(app).post('/api/login').send({
-            email: newUser.email,
-            password: newUser.password,
-        });
         const userID = 301;
 
         const response = await request(app)
@@ -155,7 +159,7 @@ describe('User API', async () => {
                 email: 'janedoe@gmail.com',
                 password: 'password123',
             })
-            .set('Authorization', `Bearer ${login_res.body.token}`);
+            .set('Authorization', `Bearer ${token}`);
 
         console.log('Update User Response:', response.body);
 
@@ -163,11 +167,6 @@ describe('User API', async () => {
     });
 
     it('should return error if user not found when updating', async () => {
-        const login_res = await request(app).post('/api/login').send({
-            email: newUser.email,
-            password: newUser.password,
-        });
-
         const userID = 3011;
         const response = await request(app)
             .put(`/api/updateUser/${userID}`)
@@ -178,20 +177,17 @@ describe('User API', async () => {
                 email: 'janedoe@gmail.com',
                 password: 'password123',
             })
-            .set('Authorization', `Bearer ${login_res.body.token}`);
+            .set('Authorization', `Bearer ${token}`);
 
         expect(response.status).toBe(404);
     });
+
     it('should return user by Id', async () => {
-        const login_res = await request(app).post('/api/login').send({
-            email: newUser.email,
-            password: newUser.password,
-        });
         const userID = 302;
 
         const response = await request(app)
             .get(`/api/getUser/${userID}`)
-            .set('Authorization', `Bearer ${login_res.body.token}`);
+            .set('Authorization', `Bearer ${token}`);
 
         console.log('Get User by ID Response:', response.body);
 
@@ -199,46 +195,32 @@ describe('User API', async () => {
     });
 
     it('should return error if user not found by Id', async () => {
-        const login_res = await request(app).post('/api/login').send({
-            email: newUser.email,
-            password: newUser.password,
-        });
         const userID = 999;
 
         const response = await request(app)
             .get(`/api/getUser/${userID}`)
-            .set('Authorization', `Bearer ${login_res.body.token}`);
+            .set('Authorization', `Bearer ${token}`);
 
         expect(response.status).toBe(404);
         expect(response.body).toHaveProperty('message');
     });
 
     it('should delete user', async () => {
-        const login_res = await request(app).post('/api/login').send({
-            email: newUser.email,
-            password: newUser.password,
-        });
-
         const userID = 327;
 
         const response = await request(app)
             .delete(`/api/deleteUser/${userID}`)
-            .set('Authorization', `Bearer ${login_res.body.token}`);
+            .set('Authorization', `Bearer ${token}`);
 
         expect(response.status).toBe(200);
     });
 
     // it('should return error if user not found when deleting', async () => {
-    //     const login_res = await request(app).post('/api/login').send({
-    //         email: newUser.email,
-    //         password: newUser.password,
-    //     });
-
     //     const userID = 999;
 
     //     const response = await request(app)
     //         .delete(`/api/deleteUser/${userID}`)
-    //         .set('Authorization', `Bearer ${login_res.body.token}`);
+    //         .set('Authorization', `Bearer ${token}`);
 
     //     expect(response.status).toBe(404);
     //     expect(response.body).toHaveProperty('message');
