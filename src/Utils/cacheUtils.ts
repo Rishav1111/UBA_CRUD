@@ -1,6 +1,6 @@
 import redisClient from '../redis';
 
-const CACHE_EXPIRY = 60*60;
+const CACHE_EXPIRY = 60 * 60;
 
 export const getCache = async (key: string) => {
     const cache = await redisClient.get(key);

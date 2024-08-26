@@ -67,8 +67,8 @@ describe('User API', async () => {
         expect(response.body).toHaveProperty('message');
     });
 
-    it('should get users', async () => {  
-        const response = await request(app) 
+    it('should get users', async () => {
+        const response = await request(app)
             .get('/api/getUsers')
             .set('Authorization', `Bearer ${token}`);
 

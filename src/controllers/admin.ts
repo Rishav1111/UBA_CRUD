@@ -52,7 +52,7 @@ export const createUserByAdmin = async (req: Request, res: Response) => {
 
         // Create a new user with the role ID
         const newUser = userRepo.create({
-            fullname, 
+            fullname,
             DOB,
             phoneNumber,
             email,
